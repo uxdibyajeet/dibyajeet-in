@@ -109,7 +109,7 @@ function EditorNav() {
   const handleSaveAndPreview = async () => {
     setPreviewing(true);
     try {
-      const ok = await persistDoc("archived");
+      const ok = await persistDoc(status ?? "published");
       if (!ok) throw new Error("Failed to save case study");
       window.open(`/case-study/${slug}`, "_blank");
     } finally {
