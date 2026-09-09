@@ -1,0 +1,128 @@
+/* =========================
+   Footer
+   ========================= */
+
+footer {
+  padding: 2rem 4rem;
+  color: var(--color-white);
+}
+
+.footer-hero {
+  flex: 1;
+  margin-bottom: 1.5rem;
+}
+
+.data-wrapper {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.data-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.footer-label {
+  color: var(--color-neutral-300);
+  text-transform: capitalize;
+}
+
+.footer-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.footer-copy-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--color-neutral-300);
+  cursor: pointer;
+  padding: 0.2rem;
+  border-radius: var(--radius-sm);
+  transition:
+    color 0.2s ease,
+    transform 0.15s ease;
+}
+
+.footer-copy-btn:hover {
+  color: var(--color-primary-300);
+}
+
+.footer-copy-btn:active {
+  transform: scale(0.9);
+}
+
+.copy-tooltip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background-color: var(--color-neutral-900);
+  color: var(--color-white);
+  font-size: var(--text-caption);
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-neutral-700);
+  pointer-events: none;
+  opacity: 0;
+  white-space: nowrap;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.footer-copy-btn.copied .copy-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.footer-social-links {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.footer-social-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-white);
+  text-decoration: none;
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.footer-social-link .bi,
+.footer-copy-btn .bi {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.footer-social-link:hover {
+  color: var(--color-primary-300);
+  transform: translateY(-2px);
+}
+
+/* Light mode legibility */
+:root[data-theme="light"] footer {
+  color: var(--color-neutral-800);
+}
+
+:root[data-theme="light"] .footer-label,
+:root[data-theme="light"] .footer-copy-btn {
+  color: var(--color-neutral-700);
+}
+
+:root[data-theme="light"] .footer-social-link {
+  color: var(--color-neutral-800);
+}

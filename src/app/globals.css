@@ -1,0 +1,17 @@
+@import "bootstrap-icons/font/bootstrap-icons.css";
+@import "./reset.css";
+@import "./styles.css";
+@import "./nav.css";
+@import "./footer.css";
+@import "./theme-toggle.css";
+@import "./scroll-progress.css";
+@import "./editor.css";
+@import "./pageEditor.css";
+@import "./case-study.css";
+@import "./dashboard.css";
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+}

@@ -1,0 +1,649 @@
+/* =========================
+   Editor page canvas
+   ========================= */
+
+.editor-container {
+  padding-left: 40px;
+  position: relative;
+}
+
+.codex-editor__redactor {
+  padding-bottom: 6rem !important;
+}
+
+/* Themed shortcuts used by the EditorJS overrides below.
+   EditorJS ships its own lightweight variables on .ce-popover /
+   .ce-inline-toolbar etc. — we re-theme those to the site tokens. */
+.codex-editor {
+  --ce-surface: var(--bg-elevated);
+  --ce-surface-2: var(--color-neutral-100);
+  --ce-border: var(--border);
+  --ce-text: var(--text);
+  --ce-text-muted: var(--text-muted);
+  --ce-accent: var(--primary);
+  --ce-accent-soft: var(--color-primary-100);
+}
+
+:root[data-theme="dark"] .codex-editor {
+  --ce-surface-2: var(--color-neutral-800);
+}
+
+/* Save / preview buttons in the editor header */
+.btn.primary-btn {
+  background: var(--primary);
+  color: var(--color-white);
+  border: 1px solid var(--primary);
+  box-shadow: var(--shadow-glass-rim);
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.btn.primary-btn:hover {
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
+}
+
+.btn.secondary-btn {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--color-neutral-300);
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.btn.secondary-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* =========================
+   Block typography (from design tokens)
+   ========================= */
+
+.codex-editor .ce-paragraph {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+  letter-spacing: var(--tracking-normal);
+  color: var(--text);
+}
+
+.codex-editor .ce-header {
+  font-family: var(--font-display);
+  color: var(--text);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-tight);
+  margin: 0.25em 0;
+}
+
+.codex-editor h1.ce-header {
+  font-size: var(--text-headline-1);
+}
+
+.codex-editor h2.ce-header {
+  font-size: var(--text-headline-2);
+}
+
+.codex-editor h3.ce-header {
+  font-size: 1.5rem;
+}
+
+.codex-editor h4.ce-header {
+  font-size: 1.25rem;
+}
+
+.codex-editor h5.ce-header,
+.codex-editor h6.ce-header {
+  font-size: 1.125rem;
+}
+
+.codex-editor .caption-tool {
+  color: var(--text-muted);
+  padding-left: 0.25rem;
+}
+
+/* Empty-block placeholders */
+.codex-editor [data-placeholder]:empty::before {
+  content: attr(data-placeholder);
+  color: var(--color-neutral-400);
+  pointer-events: none;
+}
+
+/* =========================
+   Lists (bullets & ordered)
+   ========================= */
+
+.codex-editor .cdx-list {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+  color: var(--text);
+  padding-left: 1.5em;
+}
+
+.codex-editor .cdx-list__item {
+  margin: 0.25rem 0;
+}
+
+.codex-editor .cdx-list--unordered > .cdx-list__item::marker {
+  color: var(--primary);
+  font-size: 1.1em;
+}
+
+.codex-editor .cdx-list--ordered > .cdx-list__item::marker {
+  color: var(--primary);
+  font-weight: var(--weight-semibold);
+}
+
+/* =========================
+   Checklist
+   ========================= */
+
+.codex-editor .cdx-checklist__item {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+  color: var(--text);
+}
+
+.codex-editor .cdx-checklist__item-checkbox {
+  border: 1px solid var(--color-neutral-400);
+  border-radius: var(--radius-xs);
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.codex-editor .cdx-checklist__item--checked .cdx-checklist__item-checkbox {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+/* =========================
+   Table
+   ========================= */
+
+.codex-editor .tc-table {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  color: var(--text);
+}
+
+.codex-editor .tc-table__cell {
+  border: 1px solid var(--border);
+  line-height: var(--leading-normal);
+  padding: 0.5rem 0.75rem;
+}
+
+.codex-editor .tc-table__row--heading .tc-table__cell {
+  background: var(--bg-elevated);
+  font-weight: var(--weight-semibold);
+  font-family: var(--font-display);
+}
+
+.codex-editor .tc-table__cell--selected {
+  outline: 1px solid var(--primary);
+}
+
+.codex-editor .tc-add-column,
+.codex-editor .tc-add-row {
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.codex-editor .tc-add-column:hover,
+.codex-editor .tc-add-row:hover {
+  color: var(--primary);
+  background: var(--bg-elevated);
+}
+
+/* =========================
+   Image & Video tools
+   ========================= */
+
+.codex-editor .image-tool__caption,
+.codex-editor .image-tool .cdx-input {
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  letter-spacing: var(--tracking-wide);
+  line-height: var(--leading-loose);
+}
+
+.codex-editor .image-tool__image,
+.codex-editor .image-tool__image-picture,
+.codex-editor .image-tool__image video {
+  border-radius: var(--radius-lg);
+}
+
+.codex-editor .image-tool__image-preloader {
+  border-radius: var(--radius-lg);
+  background: var(--color-neutral-100);
+}
+
+.codex-editor .image-tool__image {
+  border-radius: var(--radius-lg);
+}
+
+/* =========================
+   Embed tool (video embeds)
+   ========================= */
+
+.codex-editor .embed-tool__caption {
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+}
+
+.codex-editor .embed-tool__img {
+  border-radius: var(--radius-lg);
+}
+
+.codex-editor .embed-tool__url {
+  color: var(--text-muted);
+}
+
+/* =========================
+   Quote, delimiter, code
+   ========================= */
+
+.codex-editor .ce-quote {
+  font-family: var(--font-display);
+  font-size: var(--text-headline-2);
+  line-height: var(--leading-snug);
+  color: var(--text);
+  border-left: 3px solid var(--primary);
+}
+
+.codex-editor .cdx-quote__text {
+  font-family: var(--font-display);
+  color: var(--text);
+}
+
+.codex-editor .cdx-quote__caption {
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+}
+
+.codex-editor .ce-delimiter::before {
+  color: var(--text-muted);
+}
+
+.codex-editor .cdx-code {
+  background: var(--bg-elevated);
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.875rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.codex-editor .cdx-input {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text);
+  border-radius: var(--radius-sm);
+}
+
+.codex-editor .cdx-input:focus {
+  border-color: var(--primary);
+}
+
+/* Inline formatting */
+.codex-editor .cdx-inline-code {
+  background: var(--color-neutral-200);
+  color: var(--text);
+  border-radius: var(--radius-xs);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.875em;
+}
+
+.codex-editor .cdx-marker {
+  background: var(--color-amber-300);
+  color: var(--color-neutral-950);
+}
+
+/* =========================
+   Toolbar (plus button, settings button)
+   ========================= */
+
+.codex-editor .ce-toolbar__plus,
+.codex-editor .ce-toolbar__settings-btn {
+  color: var(--ce-text-muted);
+  border-radius: var(--radius-md);
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.codex-editor .ce-toolbar__plus:hover,
+.codex-editor .ce-toolbar__settings-btn:hover,
+.codex-editor .ce-toolbar__plus--active,
+.codex-editor .ce-toolbar__settings-btn--active {
+  color: var(--ce-text);
+  background: var(--ce-surface-2);
+}
+
+/* =========================
+   Popovers (toolbox + block tunes dropdown)
+   ========================= */
+
+.codex-editor .ce-popover {
+  /* Re-theme EditorJS' internal variables instead of fighting its CSS */
+  --border-radius: var(--radius-lg);
+  --width: 13rem;
+  --max-height: 24rem;
+  --offset-from-target: 0.5rem;
+  --color-border: var(--ce-border);
+  --color-shadow: oklch(15.11% 0.0067 92.33 / 0.18);
+  --color-background: var(--ce-surface);
+  --color-text-primary: var(--ce-text);
+  --color-text-secondary: var(--ce-text-muted);
+  --color-border-icon: var(--ce-border);
+  --color-border-icon-disabled: var(--ce-border);
+  --color-text-icon-active: var(--ce-accent);
+  --color-background-icon-active: var(--ce-accent-soft);
+  --color-background-item-focus: var(--ce-accent-soft);
+  --color-shadow-item-focus: oklch(52.92% 0.1931 262.13 / 0.12);
+  --color-background-item-hover: var(--ce-surface-2);
+  --color-background-item-confirm: var(--color-red-500);
+  --color-background-item-confirm-hover: var(--color-red-600);
+  color: var(--ce-text);
+}
+
+.codex-editor .ce-popover__container {
+  background: var(--ce-surface);
+  border: 1px solid var(--ce-border);
+  box-shadow: var(--shadow-glass-depth);
+  border-radius: var(--radius-lg);
+  max-height: 24rem;
+}
+
+.codex-editor .ce-popover-item {
+  border-radius: var(--radius-sm);
+}
+
+.codex-editor .ce-popover-item:hover,
+.codex-editor .ce-popover-item--focused,
+.codex-editor .ce-popover-item--selected {
+  background: var(--ce-surface-2);
+  box-shadow: var(--ce-accent-soft) 0 0 0 1px;
+}
+
+.codex-editor .ce-popover-item--active,
+.codex-editor .ce-popover-item--active:hover {
+  background: var(--ce-accent-soft);
+  color: var(--ce-accent);
+}
+
+.codex-editor .ce-popover-item--active .ce-popover-item__icon {
+  background: var(--ce-accent-soft);
+  color: var(--ce-accent);
+}
+
+.codex-editor .ce-popover-item__icon {
+  background: var(--ce-surface-2);
+  color: var(--ce-text);
+  border-radius: var(--radius-sm);
+}
+
+.codex-editor .ce-popover-item:hover .ce-popover-item__title,
+.codex-editor .ce-popover-item--focused .ce-popover-item__title {
+  color: var(--ce-text);
+}
+
+.codex-editor .ce-popover-item:hover .ce-popover-item__icon,
+.codex-editor .ce-popover-item--focused .ce-popover-item__icon {
+  background: var(--ce-surface);
+  color: var(--ce-text);
+}
+
+.codex-editor .ce-popover-item__title {
+  color: var(--ce-text);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+}
+
+.codex-editor .ce-popover-item__secondary-title {
+  color: var(--ce-text-muted);
+}
+
+.codex-editor .ce-popover-item__shortcut {
+  color: var(--ce-text-muted);
+}
+
+.codex-editor .ce-popover__search .cdx-search-field {
+  border-color: var(--ce-border);
+  border-radius: var(--radius-md);
+  color: var(--ce-text);
+  background: var(--ce-surface);
+}
+
+.codex-editor .ce-popover-header {
+  color: var(--ce-text);
+  border-bottom: 1px solid var(--ce-border);
+}
+
+.codex-editor .ce-popover-header__back-button {
+  color: var(--ce-text-muted);
+}
+
+/* =========================
+   Inline / conversion toolbars
+   ========================= */
+
+.codex-editor .ce-inline-toolbar,
+.codex-editor .ce-conversion-toolbar {
+  background: var(--ce-surface);
+  border: 1px solid var(--ce-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-glass-depth);
+  color: var(--ce-text);
+}
+
+.codex-editor .ce-inline-tool,
+.codex-editor .ce-conversion-tool {
+  color: var(--ce-text-muted);
+  border-radius: var(--radius-sm);
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.codex-editor .ce-inline-tool:hover,
+.codex-editor .ce-conversion-tool:hover {
+  color: var(--ce-text);
+  background: var(--ce-surface-2);
+}
+
+.codex-editor .ce-inline-tool--active {
+  color: var(--primary);
+}
+
+.codex-editor .ce-conversion-tool--active {
+  color: var(--primary);
+}
+
+.codex-editor .ce-conversion-tool__icon {
+  color: var(--text-muted);
+}
+
+.codex-editor .ce-conversion-tool:hover .ce-conversion-tool__icon {
+  color: var(--text);
+}
+
+/* =========================
+   Generic buttons inside tools
+   ========================= */
+
+.codex-editor .cdx-button {
+  background: transparent;
+  border: 1px dashed var(--color-neutral-300);
+  color: var(--text-muted);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-weight: var(--weight-medium);
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.codex-editor .cdx-button:hover {
+  color: var(--ce-accent);
+  border-color: var(--ce-accent);
+  background: var(--ce-surface-2);
+}
+
+/* Block hover / selected affordance */
+.codex-editor .ce-block--selected .ce-block__content {
+  background: transparent;
+}
+
+/* =========================
+   Cover image
+   ========================= */
+
+.cover-image {
+  height: 300px;
+  background-color: var(--color-amber-400);
+  position: relative;
+}
+
+.badge-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.875rem;
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-loose);
+  letter-spacing: var(--tracking-wide);
+  color: var(--color-white);
+  text-transform: capitalize;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--glass-border);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cover-image-badge {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+}
+
+.cover-controls {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cover-image-input {
+  display: none;
+}
+
+.cover-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.9rem;
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-wide);
+  line-height: var(--leading-loose);
+  color: var(--color-white);
+  background: var(--color-neutral-800);
+  border: 1px solid var(--color-neutral-800);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cover-btn .bi {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.cover-btn:hover:not(:disabled) {
+  background: var(--color-neutral-700);
+  border-color: var(--color-neutral-700);
+}
+
+.cover-btn.is-active {
+  color: var(--color-amber-200);
+  border-color: var(--color-amber-200);
+}
+
+.cover-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.cover-btn-icon {
+  padding: 0.5rem;
+}
+
+.cover-link {
+  position: absolute;
+  left: 1rem;
+  bottom: 1rem;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cover-link input[type="url"] {
+  min-width: 280px;
+  padding: 0.5rem 0.9rem;
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  line-height: var(--leading-loose);
+  color: var(--color-white);
+  background: var(--color-neutral-800);
+  border: 1px solid var(--color-neutral-600);
+  border-radius: var(--radius-full);
+  transition: border-color 0.2s ease;
+}
+
+.cover-link input[type="url"]::placeholder {
+  color: var(--color-neutral-400);
+}
+
+.cover-link input[type="url"]:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+@media (max-width: 640px) {
+  .cover-link {
+    left: 0.5rem;
+    right: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .cover-link input[type="url"] {
+    min-width: 0;
+    flex: 1;
+  }
+}
+
+.cover-image.repositioning {
+  cursor: grabbing;
+  user-select: none;
+  -webkit-user-select: none;
+}

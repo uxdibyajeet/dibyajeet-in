@@ -1,0 +1,22 @@
+/* Disable native scrollbars (Chrome/Safari/Edge, Firefox, IE) */
+* {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+*::-webkit-scrollbar {
+  display: none;
+}
+
+/* Scroll progress bar (top of viewport) */
+.scroll-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 0.25rem;
+  width: 0%;
+  background: var(--scroll-progress);
+  z-index: 9999;
+  pointer-events: none;
+  transition: width 0.1s linear;
+}

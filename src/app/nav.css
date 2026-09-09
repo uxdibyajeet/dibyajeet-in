@@ -1,0 +1,135 @@
+/* =========================
+   Global Navigation (Default Mode)
+   ========================= */
+
+.global-nav {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem 4rem;
+  color: var(--color-white);
+}
+
+/* Logo */
+.left-div {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  color: var(--color-primary-500);
+}
+
+/* Navigation Links */
+.right-div {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.nav-link {
+  color: var(--color-neutral-300);
+  text-decoration: none;
+}
+
+.nav-link:hover {
+  color: var(--color-primary-300);
+}
+
+.active {
+  color: var(--color-white) !important;
+  font-weight: var(--weight-black);
+}
+
+/* Light mode link contrast */
+:root[data-theme="light"] .nav-link {
+  color: var(--color-neutral-700);
+}
+
+:root[data-theme="light"] .nav-link:hover {
+  color: var(--color-primary-600);
+}
+
+:root[data-theme="light"] .nav-link.active {
+  color: var(--color-neutral-950) !important;
+}
+
+:root[data-theme="light"] .back-btn {
+  color: var(--color-neutral-700);
+}
+
+:root[data-theme="light"] .back-btn:hover {
+  color: var(--color-primary-600);
+}
+
+/* =========================
+   Editor Navigation Mode
+   ========================= */
+
+.editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem 4rem;
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--color-neutral-300);
+  text-decoration: none;
+  text-transform: capitalize;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.back-btn .bi {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transform: translateY(-0.7px);
+}
+
+.editor-header .btn {
+  min-height: 40px;
+}
+
+.editor-nav-title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: capitalize;
+  font-size: calc(var(--text-headline-2) - 6px);
+}
+
+.back-btn:hover {
+  color: var(--color-primary-300);
+}
+
+.btn-group {
+  display: flex;
+  gap: 1rem;
+}
+
+.reading-time-badge {
+  color: var(--color-neutral-400);
+}
