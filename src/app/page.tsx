@@ -31,7 +31,7 @@ export default async function Home() {
           </span>
           <span className="illustration">
             <Image
-              src="/hero-image.svg"
+              src="/image-hero.svg"
               alt="Illustration of a pencil"
               className="hero-image"
               width={271}
