@@ -5,6 +5,12 @@ import { saveEditor } from "./editorStore";
 
 export const CASE_STUDY_PREVIEW_SLUG = "preview";
 
+/**
+ * localStorage key written on every successful case-study save. Other tabs
+ * (e.g. the open dashboard) listen for the storage event to refresh the list.
+ */
+export const CASE_STUDIES_CHANGED_KEY = "portfolio-case-studies-changed";
+
 export type CaseStudyStatus = "published" | "archived";
 
 export interface CaseStudyDuration {

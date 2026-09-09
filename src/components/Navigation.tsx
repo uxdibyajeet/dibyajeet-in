@@ -9,6 +9,7 @@ import LogoutButton from "@/components/LogoutButton";
 import {
   buildCaseStudyDoc,
   caseStudyDocTitle,
+  CASE_STUDIES_CHANGED_KEY,
   CASE_STUDY_PREVIEW_SLUG,
   type CaseStudyStatus,
 } from "@/lib/caseStudy";
@@ -95,6 +96,9 @@ function EditorNav() {
       if (!res.ok) throw new Error("Failed to save case study");
       setProjectTitle(caseStudyDocTitle(doc));
       setStatus(status);
+      if (typeof window !== "undefined") {
+        localStorage.setItem(CASE_STUDIES_CHANGED_KEY, Date.now().toString());
+      }
       return true;
     } catch (error) {
       console.error("Save failed:", error);
@@ -166,6 +170,20 @@ function EditorNav() {
 function DashboardNav() {
   const [creating, setCreating] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    const refresh = () => router.refresh();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === CASE_STUDIES_CHANGED_KEY) refresh();
+    };
+    const onFocus = () => refresh();
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("focus", onFocus);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [router]);
 
   const handleCreateProject = async () => {
     if (creating) return;

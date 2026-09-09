@@ -66,27 +66,43 @@ export async function readCaseStudy(slug: string): Promise<CaseStudyDoc | null> 
 export async function listCaseStudies(): Promise<CaseStudyDoc[]> {
   const docs = await readIndex();
 
-  if (docs.length === 0) {
-    // Backfill: seed the index from the store just once so any pre-existing
-    // documents survive even without an index object.
-    const keys = await listKeys("case-studies/");
-    for (const key of keys) {
-      if (key.endsWith("/index.json") || !key.endsWith(".json")) continue;
-      const raw = await readJson(key);
-      if (raw && typeof raw.id === "string") docs.push(raw);
-    }
-    if (docs.length > 0) {
-      await writeJson(INDEX_KEY, { version: 1, docs });
-    }
+  // Self-heal the index: reconcile it against the real keys in the store so
+  // projects written by other means (scripts, migration, manual writes) always
+  // show up, and index entries whose document no longer exists are dropped.
+  const known = new Map<string, Json>();
+  for (const doc of docs) {
+    if (typeof doc.id === "string") known.set(doc.id, doc);
   }
 
-  const unique = new Map<string, Json>();
-  for (const doc of docs) {
-    if (typeof doc.id === "string") unique.set(doc.id, doc);
+  const keySlugs = new Set<string>();
+  const keys = await listKeys("case-studies/");
+  for (const key of keys) {
+    const name = key.replace(/^case-studies\//, "");
+    if (name === "index.json" || !name.endsWith(".json")) continue;
+    keySlugs.add(name.slice(0, -5));
+  }
+
+  let changed = false;
+  for (const slug of known.keys()) {
+    if (!keySlugs.has(slug)) {
+      known.delete(slug);
+      changed = true;
+    }
+  }
+  for (const slug of keySlugs) {
+    if (known.has(slug)) continue;
+    const raw = await readJson(`case-studies/${slug}.json`);
+    if (raw && typeof raw.id === "string") {
+      known.set(slug, raw);
+      changed = true;
+    }
+  }
+  if (changed) {
+    await writeJson(INDEX_KEY, { version: 1, docs: [...known.values()] });
   }
 
   const result: CaseStudyDoc[] = [];
-  for (const doc of unique.values()) {
+  for (const doc of known.values()) {
     const normalized = normalize(doc as Partial<CaseStudyDoc>);
     if (normalized) result.push(normalized);
   }
