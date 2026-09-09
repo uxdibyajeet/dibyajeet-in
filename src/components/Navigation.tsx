@@ -155,6 +155,7 @@ function EditorNav() {
 
 function DashboardNav() {
   const [creating, setCreating] = useState(false);
+  const router = useRouter();
 
   const handleCreateProject = async () => {
     if (creating) return;
@@ -164,6 +165,7 @@ function DashboardNav() {
       if (!res.ok) throw new Error("Failed to create project");
       const data = await res.json();
       window.open(`/pageEditor/${data.slug}`, "_blank");
+      router.refresh();
     } catch (error) {
       console.error("Create project failed:", error);
     } finally {
