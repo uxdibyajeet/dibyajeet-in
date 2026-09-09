@@ -26,7 +26,7 @@ export default async function Home() {
             </p>
             <span className="status-badge">
               <span className="dot" />
-              <p>2+ Years In The SaaS Design Game</p>
+              <p>2+ Years experience</p>
             </span>
           </span>
           <span className="illustration">
