@@ -16,33 +16,37 @@ export default async function Home() {
     );
 
   return (
-    <main className="home-main">
-      <section className="hero-section">
-        <span className="text-col">
-          <h1 className="greet-text text-hero">Hey there! I&apos;m Dibyajeet</h1>
-          <p className="greet-content text-headline-1">
-            Turning complex business problems into simple, useful features.
-          </p>
-          <span className="status-badge">
-            <span className="dot" />
-            <p>2+ Years In The SaaS Design Game</p>
+    <main className="main">
+      <section className="span-12">
+        <div className="hero-section">
+          <span className="text-col">
+            <h1 className="greet-text text-hero">Hey there! I&apos;m Dibyajeet</h1>
+            <p className="greet-content text-hero-subtitle">
+              Turning complex business problems into simple, useful features.
+            </p>
+            <span className="status-badge">
+              <span className="dot" />
+              <p>2+ Years In The SaaS Design Game</p>
+            </span>
           </span>
-        </span>
-        <span className="illustration">
-          <Image
-            src="/hero-image.svg"
-            alt="Illustration of a pencil"
-            className="hero-image"
-            width={271}
-            height={163}
-            priority
-          />
-        </span>
+          <span className="illustration">
+            <Image
+              src="/hero-image.svg"
+              alt="Illustration of a pencil"
+              className="hero-image"
+              width={271}
+              height={163}
+              priority
+            />
+          </span>
+        </div>
       </section>
-      <section className="project-grid">
-        {docs.map((doc) => (
-          <ProjectCard key={doc.id} doc={doc} />
-        ))}
+      <section className="span-12">
+        <div className="project-grid">
+          {docs.map((doc) => (
+            <ProjectCard key={doc.id} doc={doc} />
+          ))}
+        </div>
       </section>
     </main>
   );

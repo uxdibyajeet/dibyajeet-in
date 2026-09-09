@@ -160,6 +160,35 @@ html {
   --accent-sage: var(--color-sage-400);
 }
 
+/* ---- System-matched defaults (no explicit data-theme yet) ---- */
+:root:not([data-theme]) {
+  --bg: var(--color-neutral-50);
+  --bg-elevated: var(--color-white);
+  --text: var(--color-neutral-900);
+  --text-muted: var(--color-neutral-600);
+  --border: var(--color-neutral-200);
+  --primary: var(--color-primary-500);
+  --primary-hover: var(--color-primary-600);
+  --accent-amber: var(--color-amber-500);
+  --accent-red: var(--color-red-500);
+  --accent-sage: var(--color-sage-500);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --bg: var(--color-neutral-800);
+    --bg-elevated: var(--color-neutral-900);
+    --text: var(--color-neutral-50);
+    --text-muted: var(--color-neutral-400);
+    --border: var(--color-neutral-800);
+    --primary: var(--color-primary-400);
+    --primary-hover: var(--color-primary-300);
+    --accent-amber: var(--color-amber-400);
+    --accent-red: var(--color-red-400);
+    --accent-sage: var(--color-sage-400);
+  }
+}
+
 .text-caption {
   font-family: var(--font-body);
   font-size: var(--text-caption);
