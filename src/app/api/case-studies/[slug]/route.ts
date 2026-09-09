@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/auth";
 import type { CaseStudyDoc } from "@/lib/caseStudy";
 import {
   deleteCaseStudy,
@@ -7,10 +8,20 @@ import {
   writeCaseStudy,
 } from "@/lib/caseStudyServer";
 
+async function requireUser() {
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  return null;
+}
+
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ slug: string }> },
 ) {
+  const unauthorized = await requireUser();
+  if (unauthorized) return unauthorized;
   const { slug } = await params;
   const doc = await readCaseStudy(slug);
   if (!doc) {
@@ -23,6 +34,8 @@ export async function PUT(
   req: Request,
   { params }: { params: Promise<{ slug: string }> },
 ) {
+  const unauthorized = await requireUser();
+  if (unauthorized) return unauthorized;
   const { slug } = await params;
   const body = (await req.json()) as Partial<CaseStudyDoc>;
 
@@ -42,6 +55,8 @@ export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ slug: string }> },
 ) {
+  const unauthorized = await requireUser();
+  if (unauthorized) return unauthorized;
   const { slug } = await params;
   const body = (await req.json()) as { status?: string; order?: unknown };
 
@@ -76,6 +91,8 @@ export async function DELETE(
   _req: Request,
   { params }: { params: Promise<{ slug: string }> },
 ) {
+  const unauthorized = await requireUser();
+  if (unauthorized) return unauthorized;
   const { slug } = await params;
   const ok = await deleteCaseStudy(slug);
   if (!ok) {

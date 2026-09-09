@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import CaseStudy from "@/components/caseStudy/CaseStudy";
+import { auth } from "@/auth";
 import { readCaseStudy } from "@/lib/caseStudyServer";
 
 export const dynamic = "force-dynamic";
@@ -23,6 +24,11 @@ export default async function CaseStudyPage({
   const { slug } = await params;
   const doc = await readCaseStudy(slug);
   if (!doc) notFound();
+
+  if (doc.status !== "published") {
+    const session = await auth();
+    if (!session?.user) redirect("/login");
+  }
 
   return (
     <main className="main">

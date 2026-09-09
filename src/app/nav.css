@@ -110,7 +110,6 @@
 }
 
 .editor-nav-title {
-  flex: 1;
   min-width: 0;
   margin: 0;
   text-align: center;
@@ -119,6 +118,34 @@
   text-overflow: ellipsis;
   text-transform: capitalize;
   font-size: calc(var(--text-headline-2) - 6px);
+}
+
+.editor-nav-title-group {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.editor-nav-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 0.75rem;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1;
+  text-transform: capitalize;
+  color: var(--color-neutral-500);
+  background: var(--color-neutral-200);
+}
+
+.editor-nav-badge.is-published {
+  color: var(--color-sage-700);
+  background: var(--color-sage-100);
 }
 
 .back-btn:hover {
