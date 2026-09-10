@@ -1,8 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import CoverImage from "@/components/CoverImage";
-import Editor from "@/components/Editor";
-import MetadataPanel from "@/components/MetadataPanel";
+import EditorFlow from "@/components/EditorFlow";
 import { caseStudyDocTitle } from "@/lib/caseStudy";
 import { readCaseStudy } from "@/lib/caseStudyServer";
 
@@ -23,9 +21,7 @@ export default async function ProjectEditorPage({ params }: Props) {
 
   return (
     <main className="main">
-      <CoverImage key={`cover-${slug}`} initial={doc.cover} />
-      <MetadataPanel key={`meta-${slug}`} initial={doc.meta} />
-      <Editor key={`editor-${slug}`} initialData={doc.content} />
+      <EditorFlow slug={slug} initialDoc={doc} />
     </main>
   );
 }

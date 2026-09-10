@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { navRoutes, routes } from "@/lib/routes";
 import { renderIcon } from "@/components/icons";
 import LogoutButton from "@/components/LogoutButton";
+import { getStep, setStep, watchStep, STEP_CARD, STEP_CASE_STUDY } from "@/lib/stepperStore";
 import {
   buildCaseStudyDoc,
   caseStudyDocTitle,
@@ -82,7 +83,12 @@ function EditorNav() {
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   const [toast, setToast] = useState<SaveToast | null>(null);
   const [projectTitle, setProjectTitle] = useState<string | null>(null);
+  const [step, setStepState] = useState(() => getStep());
   const slug = slugFromPath(pathname) ?? CASE_STUDY_PREVIEW_SLUG;
+
+  useEffect(() => {
+    return watchStep((next) => setStepState(next));
+  }, []);
 
   useEffect(() => {
     if (!toast) return;
@@ -154,11 +160,6 @@ function EditorNav() {
     }
   };
 
-  const handleSave = async () => {
-    if (saving || previewing) return;
-    await persistDoc(status ?? "archived");
-  };
-
   const handleSaveAndPreview = async () => {
     if (saving || previewing) return;
     setPreviewing(true);
@@ -169,6 +170,12 @@ function EditorNav() {
     } finally {
       setPreviewing(false);
     }
+  };
+
+  const handleNext = async () => {
+    if (saving) return;
+    const ok = await persistDoc(status ?? "archived");
+    if (ok) setStep(STEP_CARD);
   };
 
   return (
@@ -201,24 +208,39 @@ function EditorNav() {
       </div>
 
       <div className="btn-group">
-        <button
-          id="preview-btn"
-          className="btn primary-btn"
-          onClick={handleSaveAndPreview}
-          disabled={previewing || saving}
-          type="button"
-        >
-          {previewing ? "Previewing…" : "Save and Preview"}
-        </button>
-        <button
-          id="save-editor-btn"
-          className="btn secondary-btn"
-          onClick={handleSave}
-          disabled={saving}
-          type="button"
-        >
-          {saving ? "Saving…" : "Save"}
-        </button>
+        {step === STEP_CARD ? (
+          <button
+            id="back-editor-btn"
+            className="btn secondary-btn"
+            onClick={() => setStep(STEP_CASE_STUDY)}
+            type="button"
+          >
+            <i className="bi bi-arrow-left" aria-hidden="true" />
+            back
+          </button>
+        ) : (
+          <>
+            <button
+              id="preview-btn"
+              className="btn secondary-btn"
+              onClick={handleSaveAndPreview}
+              disabled={previewing || saving}
+              type="button"
+            >
+              {previewing ? "Previewing…" : "Save and Preview"}
+            </button>
+            <button
+              id="next-btn"
+              className="btn primary-btn"
+              onClick={handleNext}
+              disabled={saving}
+              type="button"
+            >
+              {saving ? "Saving…" : "Next"}
+              {!saving ? <i className="bi bi-arrow-right" aria-hidden="true" /> : null}
+            </button>
+          </>
+        )}
       </div>
 
       {toast ? (

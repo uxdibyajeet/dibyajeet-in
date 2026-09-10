@@ -67,6 +67,17 @@ export function writePendingToStorage(pending: Record<string, PendingCard>): voi
   }
 }
 
+/**
+ * Record a just-saved change so both this tab and any open dashboard tab
+ * (via the `storage` event) reflect it immediately. Mirrors the old inline
+ * EditorNav behaviour shared by the card editor.
+ */
+export function broadcastCaseStudyChange(entry: PendingCard): void {
+  if (typeof window === "undefined") return;
+  writePendingToStorage({ ...readPendingFromStorage(), [entry.id]: entry });
+  window.localStorage.setItem(CASE_STUDIES_CHANGED_KEY, Date.now().toString());
+}
+
 export type CaseStudyStatus = "published" | "archived";
 
 export interface CaseStudyDuration {
@@ -80,6 +91,8 @@ export interface CaseStudyMeta {
   duration: CaseStudyDuration;
   tools: string[];
   readingTime: number;
+  projectType: string[];
+  projectDescription: string;
 }
 
 export const DEFAULT_META: CaseStudyMeta = {
@@ -88,6 +101,8 @@ export const DEFAULT_META: CaseStudyMeta = {
   duration: { start: null, end: null },
   tools: [],
   readingTime: 1,
+  projectType: [],
+  projectDescription: "",
 };
 
 export interface CaseStudyDoc {
@@ -141,6 +156,12 @@ export function caseStudyTitle(doc: Pick<CaseStudyDoc, "content">): string {
   const text = header && "text" in header.data ? header.data.text : "";
   const clean = String(text).replace(STRIP_TAGS, " ").replace(/\s+/g, " ").trim();
   return clean || "Untitled";
+}
+
+export function caseStudyDescription(doc: Pick<CaseStudyDoc, "content">): string {
+  const paragraph = doc.content.blocks.find((block) => block.type === "paragraph");
+  if (!paragraph || !("text" in paragraph.data)) return "";
+  return String(paragraph.data.text).replace(STRIP_TAGS, " ").replace(/\s+/g, " ").trim();
 }
 
 export function caseStudyDocTitle(
