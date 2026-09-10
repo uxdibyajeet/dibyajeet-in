@@ -64,50 +64,25 @@ export async function readCaseStudy(slug: string): Promise<CaseStudyDoc | null> 
 }
 
 export async function listCaseStudies(): Promise<CaseStudyDoc[]> {
-  const docs = await readIndex();
-
-  // Self-heal the index: reconcile it against the real keys in the store so
-  // projects written by other means (scripts, migration, manual writes) always
-  // show up, and index entries whose document no longer exists are dropped.
-  const known = new Map<string, Json>();
-  for (const doc of docs) {
-    if (typeof doc.id === "string") known.set(doc.id, doc);
-  }
-
-  const keySlugs = new Set<string>();
+  // Authoritative read: the store is the source of truth, not the index.
+  // Each document blob is written atomically by a single PUT, so status/order
+  // are always current — unlike the index, whose read-modify-write could race
+  // and serve a stale status after a drag-publish.
+  const result: CaseStudyDoc[] = [];
   const keys = await listKeys("case-studies/");
   for (const key of keys) {
     const name = key.replace(/^case-studies\//, "");
     if (name === "index.json" || !name.endsWith(".json")) continue;
-    keySlugs.add(name.slice(0, -5));
-  }
-
-  let changed = false;
-  for (const slug of known.keys()) {
-    if (!keySlugs.has(slug)) {
-      known.delete(slug);
-      changed = true;
-    }
-  }
-  for (const slug of keySlugs) {
-    if (known.has(slug)) continue;
-    const raw = await readJson(`case-studies/${slug}.json`);
-    if (raw && typeof raw.id === "string") {
-      known.set(slug, raw);
-      changed = true;
-    }
-  }
-  if (changed) {
-    await writeJson(INDEX_KEY, { version: 1, docs: [...known.values()] });
-  }
-
-  const result: CaseStudyDoc[] = [];
-  for (const doc of known.values()) {
-    const normalized = normalize(doc as Partial<CaseStudyDoc>);
+    const raw = await readJson(key);
+    const normalized = normalize(raw as Partial<CaseStudyDoc> | null);
     if (normalized) result.push(normalized);
   }
 
-  return result.sort((a, b) => b.savedAt.localeCompare(a.savedAt));
+  return result.sort(
+    (a, b) =>
+      (a.order ?? Number.MAX_SAFE_INTEGER) - (b.order ?? Number.MAX_SAFE_INTEGER) ||
+      b.savedAt.localeCompare(a.savedAt),
+  );
 }
 
 export interface CaseStudyPatch {
