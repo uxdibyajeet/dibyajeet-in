@@ -47,8 +47,9 @@ export default function EditorFlow({
         </button>
       </div>
 
+      <CoverImage key={`cover-${slug}`} initial={initialDoc?.cover} />
+
       <div className="editor-flow-step span-12" hidden={step === STEP_CARD}>
-        <CoverImage key={`cover-${slug}`} initial={initialDoc?.cover} />
         <MetadataPanel key={`meta-${slug}`} initial={initialDoc?.meta} />
         <Editor key={`editor-${slug}`} initialData={initialDoc?.content} />
       </div>
