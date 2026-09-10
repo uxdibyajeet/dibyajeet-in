@@ -253,7 +253,7 @@
 
 .codex-editor .ce-quote {
   font-family: var(--font-display);
-  font-size: var(--text-headline-2);
+  font-size: 1.25rem; /* 20px — matches case-study render */
   line-height: var(--leading-snug);
   color: var(--text);
   border-left: 3px solid var(--primary);

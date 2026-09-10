@@ -269,16 +269,17 @@
   margin: 2.5rem 0;
 }
 
-/* Quote */
+/* Quote — kept on the readable measure (margin-block only, so the auto
+   centering from the measure rule above is NOT overridden) */
 .case-study-content .cdx-quote {
-  margin: 1.5rem 0;
+  margin-block: 1.5rem;
   padding: 0.25rem 0 0.25rem 1rem;
   border-left: 3px solid var(--accent-amber);
 }
 
 .case-study-content .cdx-quote__text {
   font-family: var(--font-display);
-  font-size: var(--text-headline-2);
+  font-size: 1.25rem; /* 20px */
   font-weight: var(--weight-medium);
   line-height: var(--leading-snug);
   color: var(--text);
@@ -294,9 +295,9 @@
   color: var(--text-muted);
 }
 
-/* Code block */
+/* Code block — keep auto centering from the measure rule */
 .case-study-content pre.ce-code {
-  margin: 1.5rem 0;
+  margin-block: 1.5rem;
   padding: 1rem 1.25rem;
   overflow-x: auto;
   font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, monospace;
