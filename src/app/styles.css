@@ -246,6 +246,11 @@ html {
   padding: 0.25rem 1rem;
   text-transform: capitalize;
   cursor: pointer;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
 }
 
 .main {
