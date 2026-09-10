@@ -106,14 +106,14 @@ function EditorNav() {
     }
   };
 
-  const handlePublish = async () => {
-    await persistDoc("published");
+  const handleSave = async () => {
+    await persistDoc(status ?? "archived");
   };
 
   const handleSaveAndPreview = async () => {
     setPreviewing(true);
     try {
-      const ok = await persistDoc(status ?? "published");
+      const ok = await persistDoc(status ?? "archived");
       if (!ok) throw new Error("Failed to save case study");
       window.open(`/case-study/${slug}`, "_blank");
     } finally {
@@ -157,7 +157,7 @@ function EditorNav() {
         <button
           id="save-editor-btn"
           className="btn secondary-btn"
-          onClick={handlePublish}
+          onClick={handleSave}
           type="button"
         >
           Save

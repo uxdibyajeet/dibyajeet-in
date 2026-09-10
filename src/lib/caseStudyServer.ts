@@ -107,9 +107,12 @@ export async function deleteCaseStudy(slug: string): Promise<boolean> {
   const key = keyFor(slug);
   if (!key) return false;
 
-  const removed = await deleteKey(key);
-  if (removed) await updateIndex(slug, null);
-  return removed;
+  // Idempotent delete: even if the blob is already missing (orphaned/ghost
+  // cards), still drop the index entry and report success so the dashboard
+  // can always dismiss the card.
+  await deleteKey(key);
+  await updateIndex(slug, null);
+  return true;
 }
 
 export async function createCaseStudy(): Promise<CaseStudyDoc> {
