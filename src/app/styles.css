@@ -11,18 +11,18 @@ html {
   --color-black: oklch(0% 0 0);
   --color-white: oklch(100% 0 0);
 
-/* ---- Neutral (cool slate gray tint: hue shifted from warm ~92° to cool ~250°) ---- */
-  --color-neutral-50: oklch(98% 0.005 250);
-  --color-neutral-100: oklch(95% 0.006 250);
-  --color-neutral-200: oklch(90% 0.008 250);
-  --color-neutral-300: oklch(82% 0.010 250);
-  --color-neutral-400: oklch(70% 0.012 250);
-  --color-neutral-500: oklch(58% 0.014 250);
-  --color-neutral-600: oklch(46% 0.013 250);
-  --color-neutral-700: oklch(34% 0.011 250);
-  --color-neutral-800: oklch(24% 0.009 250);
-  --color-neutral-900: oklch(17% 0.008 250);
-  --color-neutral-950: oklch(15.11% 0.007 250);
+/* ---- Neutral (cool slate gray tint: hue shifted from warm ~92° to cool ~250°, chroma reduced for a flatter gray) ---- */
+  --color-neutral-50: oklch(98% 0.002 250);
+  --color-neutral-100: oklch(95% 0.0024 250);
+  --color-neutral-200: oklch(90% 0.003 250);
+  --color-neutral-300: oklch(82% 0.004 250);
+  --color-neutral-400: oklch(70% 0.005 250);
+  --color-neutral-500: oklch(58% 0.0056 250);
+  --color-neutral-600: oklch(46% 0.005 250);
+  --color-neutral-700: oklch(34% 0.0044 250);
+  --color-neutral-800: oklch(24% 0.0036 250);
+  --color-neutral-900: oklch(17% 0.003 250);
+  --color-neutral-950: oklch(15.11% 0.0028 250);
 
   /* ---- Primary Blue: tuned chroma down for softer cohesion ---- */
   --color-primary-50: oklch(98% 0.035 255);

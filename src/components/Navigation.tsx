@@ -28,7 +28,9 @@ function DefaultNav() {
   return (
     <nav className="global-nav" id="site-navigation">
       <div className="left-div">
-        <Logo />
+        <Link href="/" data-link="" aria-label="Home">
+          <Logo />
+        </Link>
       </div>
 
       <div className="right-div">
