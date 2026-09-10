@@ -1,0 +1,140 @@
+/* ---- About Context (intro + photo) ---- */
+
+.about-context {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-m, 1rem);
+  margin: var(--spacing-l, 2rem) 0;
+}
+
+.about-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.about-text > h2 {
+  margin-bottom: var(--spacing-s, 0.5rem);
+}
+
+.about-text > p {
+  flex-grow: 1;
+  line-height: var(--leading-relaxed);
+  margin-bottom: var(--spacing-s, 0.5rem);
+}
+
+.about-email {
+  font-weight: var(--weight-semibold);
+  text-decoration: none;
+  color: var(--primary);
+  margin-bottom: 2rem;
+}
+
+.about-email:hover {
+  color: var(--primary-hover);
+}
+
+.about-photo {
+  object-fit: cover;
+  overflow: hidden;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius-lg);
+}
+
+/* ---- Links ---- */
+
+.about-link {
+  color: var(--primary);
+  text-decoration: none;
+  text-transform: capitalize;
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+}
+
+.about-link:hover {
+  color: var(--primary-hover);
+}
+
+.about-buttons {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: var(--spacing-m, 1rem);
+  margin-bottom: var(--spacing-l, 2rem);
+}
+
+/* ---- Hobbies section ---- */
+
+.about-hobbies {
+  display: flex;
+  flex-direction: column;
+  margin: var(--spacing-l, 2rem) 0;
+}
+
+.about-hobbies > h2 {
+  margin-bottom: var(--spacing-s, 0.5rem);
+}
+
+.about-hobbies > p {
+  margin-bottom: var(--spacing-l, 2rem);
+  line-height: var(--leading-relaxed);
+}
+
+.about-photos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-m, 1rem);
+}
+
+.about-frame {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--spacing-m, 1rem);
+  gap: var(--spacing-s, 0.5rem);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.about-frame > img {
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  width: 100%;
+  border-radius: var(--radius-md);
+}
+
+.about-frame > figcaption {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ---- Desktop ---- */
+
+@media (min-width: 786px) {
+  .about-context {
+    flex-direction: row;
+    gap: var(--spacing-l, 2rem);
+    margin: var(--spacing-xl, 4rem) 0;
+  }
+
+  .about-photo {
+    width: 50%;
+    aspect-ratio: 1 / 1;
+  }
+
+  .about-hobbies {
+    margin: var(--spacing-xl, 4rem) 0;
+  }
+
+  .about-photos {
+    flex-direction: row;
+    gap: var(--spacing-m, 1rem);
+  }
+
+  .about-frame {
+    flex: 1;
+  }
+}
