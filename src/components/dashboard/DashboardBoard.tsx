@@ -23,11 +23,11 @@ import { caseStudyDocTitle, type CaseStudyDoc, type CaseStudyStatus } from "@/li
 const STATUSES: CaseStudyStatus[] = ["published", "archived"];
 const STATUS_LABELS: Record<CaseStudyStatus, string> = {
   published: "Published",
-  archived: "Archived",
+  archived: "Saved",
 };
 const STATUS_EMPTY: Record<CaseStudyStatus, string> = {
   published: "Nothing published yet.",
-  archived: "Nothing archived yet.",
+  archived: "Nothing saved yet.",
 };
 
 function groupByStatus(docs: CaseStudyDoc[]): Record<CaseStudyStatus, CaseStudyDoc[]> {
@@ -234,8 +234,16 @@ export default function DashboardBoard({ initial }: { initial: CaseStudyDoc[] })
   const [items, setItems] = useState<Record<CaseStudyStatus, CaseStudyDoc[]>>(() =>
     groupByStatus(initial),
   );
+  const [prevInitial, setPrevInitial] = useState(initial);
   const [active, setActive] = useState<CaseStudyDoc | null>(null);
   const [deleting, setDeleting] = useState<CaseStudyDoc | null>(null);
+
+  // Re-derive lists when the server sends a fresh snapshot (a save in another
+  // tab triggers router.refresh(), but useState must resync with the new props).
+  if (initial !== prevInitial) {
+    setPrevInitial(initial);
+    setItems(groupByStatus(initial));
+  }
 
   const handleDelete = (doc: CaseStudyDoc) => setDeleting(doc);
 
