@@ -57,13 +57,38 @@ function slugFromPath(pathname: string): string | null {
   return match ? match[1] : null;
 }
 
+function formatSavedAt(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+interface SaveToast {
+  kind: "success" | "error";
+  message: string;
+}
+
 function EditorNav() {
   const pathname = usePathname();
   const [status, setStatus] = useState<CaseStudyStatus | null>(null);
   const [existingOrder, setExistingOrder] = useState<number>(0);
   const [previewing, setPreviewing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<string | null>(null);
+  const [toast, setToast] = useState<SaveToast | null>(null);
   const [projectTitle, setProjectTitle] = useState<string | null>(null);
   const slug = slugFromPath(pathname) ?? CASE_STUDY_PREVIEW_SLUG;
+
+  useEffect(() => {
+    if (!toast) return;
+    const timer = window.setTimeout(() => setToast(null), 2600);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
 
   useEffect(() => {
     let cancelled = false;
@@ -79,6 +104,7 @@ function EditorNav() {
           setProjectTitle(caseStudyDocTitle(doc));
           setStatus(doc.status);
           setExistingOrder(typeof doc.order === "number" ? doc.order : 0);
+          setLastSaved(doc.savedAt ?? null);
         }
       } catch {
         if (!cancelled) setProjectTitle(null);
@@ -91,6 +117,7 @@ function EditorNav() {
   }, [slug]);
 
   const persistDoc = async (status: CaseStudyStatus): Promise<boolean> => {
+    setSaving(true);
     try {
       const doc = await buildCaseStudyDoc(slug, status);
       const res = await fetch(`/api/case-studies/${slug}`, {
@@ -101,6 +128,8 @@ function EditorNav() {
       if (!res.ok) throw new Error("Failed to save case study");
       setProjectTitle(caseStudyDocTitle(doc));
       setStatus(status);
+      setLastSaved(doc.savedAt);
+      setToast({ kind: "success", message: "Saved" });
       if (typeof window !== "undefined") {
         const entry: PendingCard = {
           kind: "set",
@@ -118,15 +147,20 @@ function EditorNav() {
       return true;
     } catch (error) {
       console.error("Save failed:", error);
+      setToast({ kind: "error", message: "Save failed — try again" });
       return false;
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleSave = async () => {
+    if (saving || previewing) return;
     await persistDoc(status ?? "archived");
   };
 
   const handleSaveAndPreview = async () => {
+    if (saving || previewing) return;
     setPreviewing(true);
     try {
       const ok = await persistDoc(status ?? "archived");
@@ -158,6 +192,12 @@ function EditorNav() {
             {status === "published" ? "Published" : "Saved"}
           </span>
         ) : null}
+        {lastSaved ? (
+          <span className="editor-nav-saved">
+            <i className="bi bi-clock" aria-hidden="true" />
+            saved {formatSavedAt(lastSaved)}
+          </span>
+        ) : null}
       </div>
 
       <div className="btn-group">
@@ -165,7 +205,7 @@ function EditorNav() {
           id="preview-btn"
           className="btn primary-btn"
           onClick={handleSaveAndPreview}
-          disabled={previewing}
+          disabled={previewing || saving}
           type="button"
         >
           {previewing ? "Previewing…" : "Save and Preview"}
@@ -174,11 +214,22 @@ function EditorNav() {
           id="save-editor-btn"
           className="btn secondary-btn"
           onClick={handleSave}
+          disabled={saving}
           type="button"
         >
-          Save
+          {saving ? "Saving…" : "Save"}
         </button>
       </div>
+
+      {toast ? (
+        <div className={`editor-toast editor-toast--${toast.kind}`} role="status" aria-live="polite">
+          <i
+            className={`bi ${toast.kind === "success" ? "bi-check-circle-fill" : "bi-exclamation-triangle-fill"}`}
+            aria-hidden="true"
+          />
+          <span>{toast.message}</span>
+        </div>
+      ) : null}
     </nav>
   );
 }

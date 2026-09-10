@@ -3,6 +3,7 @@ import {
   type CaseStudyStatus,
   DEFAULT_META,
 } from "./caseStudy";
+import { kvAvailable, readIndex, removeDoc, setIndex, upsertDoc } from "./kvIndex";
 import { type Json, deleteKey, listKeys, readJson, writeJson } from "./storage";
 
 /**
@@ -10,8 +11,13 @@ import { type Json, deleteKey, listKeys, readJson, writeJson } from "./storage";
  *
  * One document == one blob at `case-studies/<slug>.json`. There is no shared
  * index to read-modify-write, so concurrent updates cannot lose data: every
- * write overwrites exactly one document key atomically. Lists are built by
- * reading each document blob directly, which keeps status/order always current.
+ * write overwrites exactly one document key atomically.
+ *
+ * When Vercel KV is configured, the full documents are also mirrored in KV as
+ * `portfolio:cs:docs` so list/single reads are strongly-consistent and instant
+ * instead of waiting out Blob's eventual-consistency after each overwrite.
+ * Blob is always written first and stays the durable source of truth; KV is
+ * repaired/seeded on every list that finds it missing or stale.
  */
 
 function keyFor(slug: string): string | null {
@@ -51,8 +57,8 @@ async function readRaw(slug: string): Promise<CaseStudyDoc | null> {
   return normalize(raw as Partial<CaseStudyDoc> | null);
 }
 
-/** Sorted-by-display-order listing of every document. */
-export async function listCaseStudies(): Promise<CaseStudyDoc[]> {
+/** Full Blob-backed listing (used as the KV fallback/repair source). */
+async function listAllFromBlob(): Promise<CaseStudyDoc[]> {
   const keys = await listKeys("case-studies/");
   const docs: CaseStudyDoc[] = [];
   for (const key of keys) {
@@ -64,13 +70,59 @@ export async function listCaseStudies(): Promise<CaseStudyDoc[]> {
   return docs.sort(byOrder);
 }
 
+/** Live count of document blobs (cheap cross-check against the KV index). */
+async function blobDocCount(): Promise<number> {
+  const keys = await listKeys("case-studies/");
+  let count = 0;
+  for (const key of keys) {
+    const name = key.replace(/^case-studies\//, "");
+    if (name.endsWith(".json") && name !== "index.json") count += 1;
+  }
+  return count;
+}
+
+/**
+ * Sorted-by-display-order listing of every document.
+ *
+ * Reads from the KV mirror when healthy (instant, strongly consistent) and
+ * falls back to per-blob reads when KV is missing or out of sync, repairing
+ * the mirror on the way out.
+ */
+export async function listCaseStudies(): Promise<CaseStudyDoc[]> {
+  if (kvAvailable) {
+    const index = await readIndex();
+    if (index) {
+      const cached = Object.values(index)
+        .map((raw) => normalize(raw as Partial<CaseStudyDoc> | null))
+        .filter((doc): doc is CaseStudyDoc => Boolean(doc));
+      if (cached.length > 0 && (await blobDocCount()) === cached.length) {
+        return cached.sort(byOrder);
+      }
+    }
+  }
+
+  const docs = await listAllFromBlob();
+  if (kvAvailable) {
+    await setIndex(Object.fromEntries(docs.map((doc) => [doc.id, doc])));
+  }
+  return docs;
+}
+
 function byOrder(a: CaseStudyDoc, b: CaseStudyDoc): number {
   const aOrder = a.order ?? Number.MAX_SAFE_INTEGER;
   const bOrder = b.order ?? Number.MAX_SAFE_INTEGER;
   return aOrder - bOrder || b.savedAt.localeCompare(a.savedAt);
 }
 
-export function readCaseStudy(slug: string): Promise<CaseStudyDoc | null> {
+export async function readCaseStudy(slug: string): Promise<CaseStudyDoc | null> {
+  if (kvAvailable) {
+    const index = await readIndex();
+    const cached = index?.[slug];
+    if (cached) {
+      const normalized = normalize(cached as Partial<CaseStudyDoc> | null);
+      if (normalized) return normalized;
+    }
+  }
   return readRaw(slug);
 }
 
@@ -99,6 +151,7 @@ export async function saveCaseStudy(
   if (!doc) throw new Error("Invalid case study document");
 
   await writeJson(key, doc as unknown as Json);
+  if (kvAvailable) await upsertDoc(doc);
   return doc;
 }
 
@@ -134,7 +187,9 @@ export async function applyStatusOrder(
 export async function deleteCaseStudy(slug: string): Promise<boolean> {
   const key = keyFor(slug);
   if (!key) return false;
-  return deleteKey(key);
+  const ok = await deleteKey(key);
+  if (ok && kvAvailable) await removeDoc(slug);
+  return ok;
 }
 
 export async function createCaseStudy(): Promise<CaseStudyDoc> {
@@ -170,5 +225,6 @@ export async function createCaseStudy(): Promise<CaseStudyDoc> {
   }) as CaseStudyDoc;
 
   await writeJson(keyFor(slug) as string, doc as unknown as Json);
+  if (kvAvailable) await upsertDoc(doc);
   return doc;
 }
