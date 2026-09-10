@@ -7,6 +7,13 @@ footer {
   color: var(--color-white);
 }
 
+/* Mobile: match .main content gutter (1rem) so footer stays aligned with body */
+@media (max-width: 786px) {
+  footer {
+    padding: 1rem 1rem;
+  }
+}
+
 .footer-hero {
   flex: 1;
   margin-bottom: 1.5rem;

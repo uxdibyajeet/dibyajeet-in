@@ -274,6 +274,17 @@ html {
 
 }
 
+/* Mobile: 6 inner columns so narrow screens aren't eaten by 12-column gaps */
+@media (max-width: 786px) {
+  .main {
+    grid-template-columns:
+      [full-start] minmax(1rem, 1fr)
+      [content-start] repeat(6, minmax(0, 1fr))
+      [content-end]
+      minmax(1rem, 1fr) [full-end];
+  }
+}
+
 .login-box {
   display: flex;
   flex-direction: column;

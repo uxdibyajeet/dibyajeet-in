@@ -44,6 +44,17 @@
   color: var(--color-primary-300);
 }
 
+/* Mobile: match .main content gutter (1rem) so nav stays aligned with body */
+@media (max-width: 786px) {
+  .global-nav {
+    padding: 1rem 1rem;
+  }
+
+  .editor-header {
+    padding: 1rem;
+  }
+}
+
 .active {
   color: var(--color-white) !important;
   font-weight: var(--weight-black);
