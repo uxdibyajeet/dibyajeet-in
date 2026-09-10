@@ -45,6 +45,7 @@ interface KvClient {
   upsertDoc(doc: CaseStudyDoc): Promise<void>;
   removeDoc(id: string): Promise<void>;
   setIndex(map: Record<string, CaseStudyDoc>): Promise<void>;
+  acquireGate(key: string, ttlSeconds: number): Promise<boolean>;
 }
 
 let cachedClient: KvClient | null | undefined;
@@ -55,6 +56,8 @@ function makeUpstashClient(kv: {
     set(key: string, path: string, value: unknown): Promise<unknown>;
     del(key: string, path: string): Promise<unknown>;
   };
+  incr(key: string): Promise<number>;
+  expire(key: string, seconds: number): Promise<number>;
 }): KvClient {
   return {
     async readIndex() {
@@ -71,6 +74,14 @@ function makeUpstashClient(kv: {
     },
     async setIndex(map) {
       await kv.json.set(KEY, "$", map as unknown as Record<string, unknown>);
+    },
+    async acquireGate(key, ttlSeconds) {
+      const count = await kv.incr(key);
+      if (count === 1) {
+        await kv.expire(key, ttlSeconds);
+        return true;
+      }
+      return false;
     },
   };
 }
@@ -100,6 +111,17 @@ function makeRespClient(resp: {
     },
     async setIndex(map) {
       await resp.sendCommand(["JSON.SET", KEY, "$", JSON.stringify(map)]);
+    },
+    async acquireGate(key, ttlSeconds) {
+      const count = Number(await resp.sendCommand(["INCR", key]));
+      if (count === 1) {
+        await resp.sendCommand(["EXPIRE", key, String(ttlSeconds)]);
+        return true;
+      }
+      if (count >= 1_000_000) {
+        await resp.sendCommand(["EXPIRE", key, String(ttlSeconds)]);
+      }
+      return false;
     },
   };
 }
@@ -181,5 +203,28 @@ export async function setIndex(
     await client.setIndex(map);
   } catch (error) {
     console.error("[kv] setIndex failed", error);
+  }
+}
+
+/** Gate key for the amortized Blob↔Redis consistency cross-check. */
+export const BLOB_CHECK_GATE_KEY = "portfolio:cs:gate:blobcheck";
+
+/**
+ * Shared, distributed gate so an expensive periodic check runs at most once per
+ * window across all serverless instances. The first request in each TTL window
+ * (tracked with INCR + EXPIRE on a control key) wins; every other request skips
+ * the check. Never touches project data — only a TTL'd counter key.
+ */
+export async function acquireGate(
+  key: string,
+  ttlSeconds: number,
+): Promise<boolean> {
+  const client = await getClient();
+  if (!client) return true;
+  try {
+    return await client.acquireGate(key, ttlSeconds);
+  } catch (error) {
+    console.error(`[kv] acquireGate ${key} failed`, error);
+    return false;
   }
 }

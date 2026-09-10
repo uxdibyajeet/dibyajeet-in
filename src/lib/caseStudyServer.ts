@@ -3,7 +3,7 @@ import {
   type CaseStudyStatus,
   DEFAULT_META,
 } from "./caseStudy";
-import { kvAvailable, readIndex, removeDoc, setIndex, upsertDoc } from "./kvIndex";
+import { kvAvailable, readIndex, removeDoc, setIndex, upsertDoc, acquireGate, BLOB_CHECK_GATE_KEY } from "./kvIndex";
 import { type Json, deleteKey, listKeys, readJson, writeJson } from "./storage";
 
 /**
@@ -96,8 +96,13 @@ export async function listCaseStudies(): Promise<CaseStudyDoc[]> {
       const cached = Object.values(index)
         .map((raw) => normalize(raw as Partial<CaseStudyDoc> | null))
         .filter((doc): doc is CaseStudyDoc => Boolean(doc));
-      if (cached.length > 0 && (await blobDocCount()) === cached.length) {
-        return cached.sort(byOrder);
+      if (cached.length > 0) {
+        // Verify the mirror against Blob at most ~once per hour (shared gate),
+        // not on every request, so public page views cost zero Blob list ops.
+        const checked =
+          !(await acquireGate(BLOB_CHECK_GATE_KEY, 3600)) ||
+          (await blobDocCount()) === cached.length;
+        if (checked) return cached.sort(byOrder);
       }
     }
   }
