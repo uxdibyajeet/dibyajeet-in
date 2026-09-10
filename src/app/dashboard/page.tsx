@@ -7,6 +7,8 @@ export const metadata: Metadata = {
   title: "Dashboard · Portfolio",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage() {
   const docs = (await listCaseStudies()).filter(
     (doc) => doc.id !== CASE_STUDY_PREVIEW_SLUG,

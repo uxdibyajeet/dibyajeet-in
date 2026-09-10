@@ -5,130 +5,158 @@ import {
 } from "./caseStudy";
 import { type Json, deleteKey, listKeys, readJson, writeJson } from "./storage";
 
-const INDEX_KEY = "case-studies/index.json";
+/**
+ * Case-study persistence.
+ *
+ * One document == one blob at `case-studies/<slug>.json`. There is no shared
+ * index to read-modify-write, so concurrent updates cannot lose data: every
+ * write overwrites exactly one document key atomically. Lists are built by
+ * reading each document blob directly, which keeps status/order always current.
+ */
 
 function keyFor(slug: string): string | null {
   if (!/^[a-zA-Z0-9_-]+$/.test(slug)) return null;
   return `case-studies/${slug}.json`;
 }
 
-function normalize(doc: Partial<CaseStudyDoc> | null): CaseStudyDoc | null {
-  if (!doc || typeof doc !== "object" || doc.schema !== "case-study-v1") return null;
+function normalize(raw: Partial<CaseStudyDoc> | null): CaseStudyDoc | null {
+  if (!raw || typeof raw !== "object" || raw.schema !== "case-study-v1") {
+    return null;
+  }
+  const id = typeof raw.id === "string" ? raw.id : "";
+  if (!id) return null;
   return {
-    ...(doc as CaseStudyDoc),
-    status: doc.status === "archived" ? "archived" : "published",
+    id,
+    savedAt: typeof raw.savedAt === "string" ? raw.savedAt : new Date().toISOString(),
+    schema: "case-study-v1",
+    status: raw.status === "published" ? "published" : "archived",
+    order: typeof raw.order === "number" ? raw.order : undefined,
+    cover: raw.cover ?? null,
+    content: raw.content ?? { time: Date.now(), version: "2.30.0", blocks: [] },
     meta: {
       ...DEFAULT_META,
-      ...(doc.meta ?? {}),
+      ...(raw.meta ?? {}),
       duration: {
         ...DEFAULT_META.duration,
-        ...(doc.meta?.duration ?? {}),
+        ...(raw.meta?.duration ?? {}),
       },
     },
   };
 }
 
-/* ---------- index (keeps the dashboard list at one blob read) ---------- */
-
-async function readIndex(): Promise<Json[]> {
-  const index = await readJson(INDEX_KEY);
-  return index && Array.isArray(index.docs) ? (index.docs as Json[]) : [];
-}
-
-async function updateIndex(slug: string, doc: Json | null): Promise<void> {
-  const docs = await readIndex();
-  const existing = docs.findIndex((entry) => entry.id === slug);
-  if (doc) {
-    if (existing >= 0) docs[existing] = doc;
-    else docs.push(doc);
-  } else if (existing >= 0) {
-    docs.splice(existing, 1);
-  }
-  await writeJson(INDEX_KEY, { version: 1, docs });
-}
-
-/* ---------- case-study operations ---------- */
-
-export async function writeCaseStudy(slug: string, doc: CaseStudyDoc): Promise<void> {
-  const key = keyFor(slug);
-  if (!key) throw new Error("Invalid case study slug");
-  await writeJson(key, doc as unknown as Json);
-  await updateIndex(slug, doc as unknown as Json);
-}
-
-export async function readCaseStudy(slug: string): Promise<CaseStudyDoc | null> {
+async function readRaw(slug: string): Promise<CaseStudyDoc | null> {
   const key = keyFor(slug);
   if (!key) return null;
   const raw = await readJson(key);
   return normalize(raw as Partial<CaseStudyDoc> | null);
 }
 
+/** Sorted-by-display-order listing of every document. */
 export async function listCaseStudies(): Promise<CaseStudyDoc[]> {
-  // Authoritative read: the store is the source of truth, not the index.
-  // Each document blob is written atomically by a single PUT, so status/order
-  // are always current — unlike the index, whose read-modify-write could race
-  // and serve a stale status after a drag-publish.
-  const result: CaseStudyDoc[] = [];
   const keys = await listKeys("case-studies/");
+  const docs: CaseStudyDoc[] = [];
   for (const key of keys) {
     const name = key.replace(/^case-studies\//, "");
-    if (name === "index.json" || !name.endsWith(".json")) continue;
-    const raw = await readJson(key);
-    const normalized = normalize(raw as Partial<CaseStudyDoc> | null);
-    if (normalized) result.push(normalized);
+    if (!name.endsWith(".json") || name === "index.json") continue;
+    const normalized = normalize((await readJson(key)) as Partial<CaseStudyDoc> | null);
+    if (normalized) docs.push(normalized);
   }
-
-  return result.sort(
-    (a, b) =>
-      (a.order ?? Number.MAX_SAFE_INTEGER) - (b.order ?? Number.MAX_SAFE_INTEGER) ||
-      b.savedAt.localeCompare(a.savedAt),
-  );
+  return docs.sort(byOrder);
 }
 
-export interface CaseStudyPatch {
-  status?: CaseStudyStatus;
-  order?: number;
+function byOrder(a: CaseStudyDoc, b: CaseStudyDoc): number {
+  const aOrder = a.order ?? Number.MAX_SAFE_INTEGER;
+  const bOrder = b.order ?? Number.MAX_SAFE_INTEGER;
+  return aOrder - bOrder || b.savedAt.localeCompare(a.savedAt);
 }
 
-export async function patchCaseStudy(
+export function readCaseStudy(slug: string): Promise<CaseStudyDoc | null> {
+  return readRaw(slug);
+}
+
+/**
+ * Overwrite a document, preserving fields the writer usually does not own
+ * (status, order) unless the incoming doc explicitly changes them.
+ */
+export async function saveCaseStudy(
   slug: string,
-  patch: CaseStudyPatch,
-): Promise<CaseStudyDoc | null> {
-  const doc = await readCaseStudy(slug);
-  if (!doc || doc.id !== slug) return null;
+  incoming: Partial<CaseStudyDoc>,
+): Promise<CaseStudyDoc> {
+  const key = keyFor(slug);
+  if (!key) throw new Error("Invalid case study slug");
 
-  if (patch.status) doc.status = patch.status;
-  if (typeof patch.order === "number") doc.order = patch.order;
-  await writeCaseStudy(slug, doc);
+  const existing = await readRaw(slug);
+  const doc = normalize({
+    ...incoming,
+    id: existing?.id ?? slug,
+    savedAt: existing?.savedAt ?? incoming.savedAt,
+    status: incoming.status ?? existing?.status ?? "archived",
+    order:
+      incoming.order === undefined || incoming.order === null
+        ? existing?.order
+        : incoming.order,
+  });
+  if (!doc) throw new Error("Invalid case study document");
+
+  await writeJson(key, doc as unknown as Json);
   return doc;
 }
 
+export interface StatusOrderUpdate {
+  id: string;
+  status: CaseStudyStatus;
+  order: number;
+}
+
+/**
+ * Apply a dashboard drag/reorder transaction. Writes are sequential so a single
+ * reorder is one "commit" from a single client, and each write touches only its
+ * own document key (no shared state to race on across requests).
+ */
+export async function applyStatusOrder(
+  updates: StatusOrderUpdate[],
+): Promise<CaseStudyDoc[]> {
+  const saved: CaseStudyDoc[] = [];
+  for (const update of updates) {
+    const existing = await readRaw(update.id);
+    if (!existing) continue;
+    const doc = await saveCaseStudy(update.id, {
+      ...existing,
+      status: update.status,
+      order: update.order,
+    });
+    saved.push(doc);
+  }
+  return saved;
+}
+
+/** Idempotent delete: a missing blob is still a success. */
 export async function deleteCaseStudy(slug: string): Promise<boolean> {
   const key = keyFor(slug);
   if (!key) return false;
-
-  // Idempotent delete: even if the blob is already missing (orphaned/ghost
-  // cards), still drop the index entry and report success so the dashboard
-  // can always dismiss the card.
-  await deleteKey(key);
-  await updateIndex(slug, null);
-  return true;
+  return deleteKey(key);
 }
 
 export async function createCaseStudy(): Promise<CaseStudyDoc> {
+  const existing = await listCaseStudies();
+  const nextOrder =
+    existing.length === 0
+      ? 0
+      : Math.max(...existing.map((doc) => doc.order ?? 0)) + 1;
+
   let slug: string;
   do {
     const stamp = Date.now().toString(36);
     const rand = Math.random().toString(36).slice(2, 6);
     slug = `proj-${stamp}-${rand}`;
-  } while (await readCaseStudy(slug));
+  } while (await readRaw(slug));
 
-  const doc: CaseStudyDoc = {
+  const doc = normalize({
     schema: "case-study-v1",
     id: slug,
     savedAt: new Date().toISOString(),
     status: "archived",
-    order: 0,
+    order: nextOrder,
     cover: null,
     content: {
       time: Date.now(),
@@ -139,8 +167,8 @@ export async function createCaseStudy(): Promise<CaseStudyDoc> {
       ],
     },
     meta: { ...DEFAULT_META },
-  };
+  }) as CaseStudyDoc;
 
-  await writeCaseStudy(slug, doc);
+  await writeJson(keyFor(slug) as string, doc as unknown as Json);
   return doc;
 }

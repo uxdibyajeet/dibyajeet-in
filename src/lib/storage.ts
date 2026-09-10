@@ -12,12 +12,12 @@ export type Json = Record<string, unknown>;
 /**
  * Storage abstraction over the case-study "database".
  *
- * When a `BLOB_READ_WRITE_TOKEN` is present (production/Vercel) documents are
- * stored as JSON blobs in Vercel Blob under the `case-studies/` prefix, plus a
- * `case-studies/index.json` that keeps the dashboard list to a single cheap read.
+ * With a `BLOB_READ_WRITE_TOKEN` (production/Vercel) documents are stored as
+ * single JSON blobs in Vercel Blob under the `case-studies/` prefix. There is
+ * intentionally no shared index: one document == one blob, so every write is
+ * an atomic overwrite of its own key and there is nothing to race on.
  *
- * Without a token (local dev) it falls back to `.data/<key>` files so the
- * existing workflow is unchanged.
+ * Without a token (local dev) it falls back to `.data/<key>` files.
  */
 
 const USE_BLOB = Boolean(process.env.BLOB_READ_WRITE_TOKEN);

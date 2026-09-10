@@ -18,7 +18,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { caseStudyDocTitle, type CaseStudyDoc, type CaseStudyStatus } from "@/lib/caseStudy";
+import { caseStudyDocTitle, CASE_STUDIES_CHANGED_KEY, type CaseStudyDoc, type CaseStudyStatus } from "@/lib/caseStudy";
 
 const STATUSES: CaseStudyStatus[] = ["published", "archived"];
 const STATUS_LABELS: Record<CaseStudyStatus, string> = {
@@ -376,20 +376,26 @@ function persistOrder(
   setItems: Dispatch<SetStateAction<Record<CaseStudyStatus, CaseStudyDoc[]>>>,
 ): void {
   const changed = new Set([from, to]);
+  const updates = [];
   for (const status of changed) {
     if (next[status].map((d) => d.id).join() === prev[status].map((d) => d.id).join()) {
       continue;
     }
-    const requests = next[status].map((doc, index) =>
-      fetch(`/api/case-studies/${doc.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status, order: index }),
-      }).then((res) => {
-        if (!res.ok) throw new Error(`PATCH ${doc.id} failed (${res.status})`);
-      }),
-    );
-
-    Promise.all(requests).catch(() => setItems(prev));
+    for (const [index, doc] of next[status].entries()) {
+      updates.push({ id: doc.id, status, order: index });
+    }
   }
+  if (updates.length === 0) return;
+
+  fetch("/api/case-studies", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ updates }),
+  }).then((res) => {
+    if (!res.ok) throw new Error(`Reorder failed (${res.status})`);
+    localStorage.setItem(CASE_STUDIES_CHANGED_KEY, Date.now().toString());
+  }).catch((error) => {
+    console.error("Reorder failed:", error);
+    setItems(prev);
+  });
 }
