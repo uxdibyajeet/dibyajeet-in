@@ -10,6 +10,8 @@
 @import "./case-study.css";
 @import "./dashboard.css";
 
+@import "./more-projects.css";
+
 html,
 body {
   background: var(--bg);

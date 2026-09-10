@@ -1,0 +1,79 @@
+/* ---- More Projects carousel ---- */
+
+.more-projects {
+  margin: var(--spacing-xl, 4rem) 0 var(--spacing-l, 2rem);
+}
+
+.more-projects__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-m, 1rem);
+}
+
+.more-projects__header h2 {
+  margin: 0;
+}
+
+.more-projects__nav {
+  display: flex;
+  gap: var(--spacing-xs, 0.25rem);
+}
+
+.more-projects__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.more-projects__btn:hover {
+  background: var(--border);
+  border-color: var(--text-muted);
+}
+
+.more-projects__track {
+  display: flex;
+  gap: var(--spacing-m, 1rem);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: var(--spacing-xs, 0.25rem);
+}
+
+.more-projects__track::-webkit-scrollbar {
+  height: 4px;
+}
+
+.more-projects__track::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: var(--radius-full);
+}
+
+.more-projects__track::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.more-projects__slide {
+  flex: 0 0 320px;
+  scroll-snap-align: start;
+}
+
+.more-projects__slide .project-card {
+  height: 100%;
+}
+
+@media (min-width: 786px) {
+  .more-projects__slide {
+    flex: 0 0 380px;
+  }
+}

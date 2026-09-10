@@ -10,17 +10,17 @@ export default function About() {
           </h2>
           <p className="text-base">
             I&apos;m a Product Designer who believes great design is rooted in
-            clarity, function, and solving real user problems. Driven by a
-            background in creative storytelling, mixed media, and complex
-            digital interfaces, I&apos;m fascinated by how emerging tech — from
-            AI to spatial computing — will reshape how we interact with
-            software and physical systems.
+            clarity, function, and solving real user problems. With a background
+            in creative storytelling, mixed media, and complex digital
+            interfaces, I&apos;m fascinated by how emerging tech, from AI to
+            spatial computing, will reshape how we interact with software and
+            physical systems.
           </p>
 
           <p className="text-base">
-            I take an outcome-driven approach to product development. Experience
-            has taught me that users provide the most valuable feedback when
-            reacting to tangible concepts rather than abstract ideas. By
+            I take an outcome-driven approach to product development. My
+            experience has shown that users give the most valuable feedback when
+            they can react to something tangible rather than abstract ideas. By
             grounding hypotheses in rapid, testable prototypes, I help teams
             move from assumptions to validated, business-aligned solutions
             efficiently.
