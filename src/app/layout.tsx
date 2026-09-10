@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import Footer from "@/components/Footer";
 import Navigation from "@/components/Navigation";
 import ScrollProgress from "@/components/ScrollProgress";
-import ThemeToggle from "@/components/ThemeToggle";
+import ThemeSync from "@/components/ThemeSync";
 import { themeInitScript } from "@/lib/theme";
 import "./globals.css";
 
@@ -23,7 +23,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <Navigation />
         {children}
         <Footer />
-        <ThemeToggle />
+        <ThemeSync />
       </body>
     </html>
   );
