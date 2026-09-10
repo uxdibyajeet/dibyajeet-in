@@ -11,7 +11,10 @@ import {
   caseStudyDocTitle,
   CASE_STUDIES_CHANGED_KEY,
   CASE_STUDY_PREVIEW_SLUG,
+  readPendingFromStorage,
+  writePendingToStorage,
   type CaseStudyStatus,
+  type PendingCard,
 } from "@/lib/caseStudy";
 
 function Logo() {
@@ -57,6 +60,7 @@ function slugFromPath(pathname: string): string | null {
 function EditorNav() {
   const pathname = usePathname();
   const [status, setStatus] = useState<CaseStudyStatus | null>(null);
+  const [existingOrder, setExistingOrder] = useState<number>(0);
   const [previewing, setPreviewing] = useState(false);
   const [projectTitle, setProjectTitle] = useState<string | null>(null);
   const slug = slugFromPath(pathname) ?? CASE_STUDY_PREVIEW_SLUG;
@@ -74,6 +78,7 @@ function EditorNav() {
         if (!cancelled) {
           setProjectTitle(caseStudyDocTitle(doc));
           setStatus(doc.status);
+          setExistingOrder(typeof doc.order === "number" ? doc.order : 0);
         }
       } catch {
         if (!cancelled) setProjectTitle(null);
@@ -97,6 +102,17 @@ function EditorNav() {
       setProjectTitle(caseStudyDocTitle(doc));
       setStatus(status);
       if (typeof window !== "undefined") {
+        const entry: PendingCard = {
+          kind: "set",
+          id: slug,
+          status,
+          order: existingOrder,
+          savedAt: doc.savedAt,
+          title: caseStudyDocTitle(doc),
+          cover: doc.cover,
+          at: Date.now(),
+        };
+        writePendingToStorage({ ...readPendingFromStorage(), [slug]: entry });
         localStorage.setItem(CASE_STUDIES_CHANGED_KEY, Date.now().toString());
       }
       return true;
@@ -192,6 +208,20 @@ function DashboardNav() {
       const res = await fetch("/api/case-studies", { method: "POST" });
       if (!res.ok) throw new Error("Failed to create project");
       const data = await res.json();
+      if (typeof window !== "undefined") {
+        const entry: PendingCard = {
+          kind: "set",
+          id: data.slug,
+          status: "archived",
+          order: typeof data.order === "number" ? data.order : 0,
+          savedAt: data.savedAt ?? new Date().toISOString(),
+          title: "Untitled",
+          cover: null,
+          at: Date.now(),
+        };
+        writePendingToStorage({ ...readPendingFromStorage(), [data.slug]: entry });
+        localStorage.setItem(CASE_STUDIES_CHANGED_KEY, Date.now().toString());
+      }
       window.open(`/pageEditor/${data.slug}`, "_blank");
       router.refresh();
     } catch (error) {

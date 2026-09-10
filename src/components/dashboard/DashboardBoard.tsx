@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState, type Dispatch, type SetStateAction } from "react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -18,7 +19,17 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { caseStudyDocTitle, CASE_STUDIES_CHANGED_KEY, type CaseStudyDoc, type CaseStudyStatus } from "@/lib/caseStudy";
+import {
+  CASE_STUDIES_CHANGED_KEY,
+  CASE_STUDIES_PENDING_KEY,
+  caseStudyDocTitle,
+  PendingCard as PendingCardType,
+  readPendingFromStorage,
+  writePendingToStorage,
+  DEFAULT_META,
+  type CaseStudyDoc,
+  type CaseStudyStatus,
+} from "@/lib/caseStudy";
 
 const STATUSES: CaseStudyStatus[] = ["published", "archived"];
 const STATUS_LABELS: Record<CaseStudyStatus, string> = {
@@ -30,11 +41,78 @@ const STATUS_EMPTY: Record<CaseStudyStatus, string> = {
   archived: "Nothing saved yet.",
 };
 
-function groupByStatus(docs: CaseStudyDoc[]): Record<CaseStudyStatus, CaseStudyDoc[]> {
-  const grouped: Record<CaseStudyStatus, CaseStudyDoc[]> = {
-    published: [],
-    archived: [],
+type Grouped = Record<CaseStudyStatus, CaseStudyDoc[]>;
+type PendingMap = Record<string, PendingCardType>;
+
+/** Build a renderable card for a pending entry we know nothing about yet. */
+function docFromPendingCard(entry: PendingCardType): CaseStudyDoc {
+  return {
+    schema: "case-study-v1",
+    id: entry.id,
+    savedAt: entry.savedAt,
+    status: entry.status,
+    order: entry.order,
+    cover: entry.cover ?? null,
+    content: {
+      time: 0,
+      version: "2.30.0",
+      blocks: [{ type: "header", data: { level: 3, text: entry.title } }],
+    },
+    meta: { ...DEFAULT_META, title: entry.title },
   };
+}
+
+function mergePending(docs: CaseStudyDoc[], pending: PendingMap): CaseStudyDoc[] {
+  let working = docs.slice();
+  for (const entry of Object.values(pending)) {
+    if (entry.kind === "delete") {
+      working = working.filter((doc) => doc.id !== entry.id);
+    } else {
+      const index = working.findIndex((doc) => doc.id === entry.id);
+      if (index === -1) {
+        working.push(docFromPendingCard(entry));
+      } else {
+        const card = docFromPendingCard(entry);
+        working[index] = {
+          ...working[index],
+          status: entry.status,
+          order: entry.order,
+          savedAt: entry.savedAt,
+          cover: card.cover,
+          meta: card.meta,
+          content: card.content,
+        };
+      }
+    }
+  }
+  return working;
+}
+
+/** Drop pending entries a fresh server read has already confirmed or that expired. */
+function prunePending(server: CaseStudyDoc[], pending: PendingMap, now = Date.now()): PendingMap {
+  const next: PendingMap = {};
+  for (const [id, entry] of Object.entries(pending)) {
+    if (now - Number(entry.at) > 45_000) continue;
+    if (entry.kind === "delete") {
+      if (!server.some((doc) => doc.id === id)) continue;
+    } else {
+      const doc = server.find((d) => d.id === id);
+      if (
+        doc &&
+        doc.status === entry.status &&
+        doc.order === entry.order &&
+        doc.savedAt === entry.savedAt
+      ) {
+        continue;
+      }
+    }
+    next[id] = entry;
+  }
+  return next;
+}
+
+function groupByStatus(docs: CaseStudyDoc[]): Grouped {
+  const grouped: Grouped = { published: [], archived: [] };
   for (const doc of docs) {
     const key = doc.status === "archived" ? "archived" : "published";
     grouped[key].push(doc);
@@ -54,9 +132,11 @@ const isStatus = (id: unknown): id is CaseStudyStatus =>
 
 function ProjectCard({
   doc,
+  syncing,
   onDelete,
 }: {
   doc: CaseStudyDoc;
+  syncing: boolean;
   onDelete: (doc: CaseStudyDoc) => void;
 }) {
   const title = useMemo(() => caseStudyDocTitle(doc), [doc]);
@@ -78,7 +158,7 @@ function ProjectCard({
       ref={setNodeRef}
       href={`/pageEditor/${doc.id}`}
       data-link=""
-      className={`dashboard-card${isDragging ? " is-dragging" : ""}`}
+      className={`dashboard-card${isDragging ? " is-dragging" : ""}${syncing ? " is-pending" : ""}`}
       suppressHydrationWarning
       onClick={(e) => {
         e.preventDefault();
@@ -122,6 +202,12 @@ function ProjectCard({
         >
           <i className="bi bi-trash" aria-hidden="true" />
         </button>
+
+        {syncing ? (
+          <span className="dashboard-card__pending" title="Changes are still syncing…">
+            <span className="sync-spinner" aria-hidden="true" />
+          </span>
+        ) : null}
       </span>
 
       <span className="dashboard-card__body">
@@ -137,10 +223,12 @@ function ProjectCard({
 function SectionRail({
   status,
   docs,
+  syncing,
   onDelete,
 }: {
   status: CaseStudyStatus;
   docs: CaseStudyDoc[];
+  syncing: boolean;
   onDelete: (doc: CaseStudyDoc) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: status });
@@ -149,7 +237,15 @@ function SectionRail({
     <section className={`dashboard-section${isOver ? " is-over" : ""}`}>
       <div className="dashboard-section__header">
         <h2 className="text-headline-3">{STATUS_LABELS[status]}</h2>
-        <span className="dashboard-section__count">{docs.length}</span>
+        <span className="dashboard-section__header-right">
+          {syncing ? (
+            <span className="dashboard-section__sync" aria-live="polite">
+              <span className="sync-spinner" aria-hidden="true" />
+              Syncing…
+            </span>
+          ) : null}
+          <span className="dashboard-section__count">{docs.length}</span>
+        </span>
       </div>
 
       <div ref={setNodeRef} className="dashboard-section__rail">
@@ -158,7 +254,7 @@ function SectionRail({
             <p className="dashboard-section__empty">{STATUS_EMPTY[status]}</p>
           ) : (
             docs.map((doc) => (
-              <ProjectCard key={doc.id} doc={doc} onDelete={onDelete} />
+              <ProjectCard key={doc.id} doc={doc} syncing={syncing} onDelete={onDelete} />
             ))
           )}
         </SortableContext>
@@ -223,7 +319,7 @@ function DeleteModal({
   );
 }
 
-function containerFor(items: Record<CaseStudyStatus, CaseStudyDoc[]>, id: string): CaseStudyStatus | null {
+function containerFor(items: Grouped, id: string): CaseStudyStatus | null {
   for (const status of STATUSES) {
     if (items[status].some((doc) => doc.id === id)) return status;
   }
@@ -231,34 +327,112 @@ function containerFor(items: Record<CaseStudyStatus, CaseStudyDoc[]>, id: string
 }
 
 export default function DashboardBoard({ initial }: { initial: CaseStudyDoc[] }) {
-  const [items, setItems] = useState<Record<CaseStudyStatus, CaseStudyDoc[]>>(() =>
-    groupByStatus(initial),
+  const router = useRouter();
+  const lastServer = useRef<CaseStudyDoc[]>(initial);
+  const pendingRef = useRef<PendingMap>(readPendingFromStorage());
+  const [pending, setPending] = useState<PendingMap>(pendingRef.current);
+  const [items, setItems] = useState<Grouped>(() =>
+    groupByStatus(mergePending(initial, pendingRef.current)),
   );
   const [prevInitial, setPrevInitial] = useState(initial);
   const [active, setActive] = useState<CaseStudyDoc | null>(null);
   const [deleting, setDeleting] = useState<CaseStudyDoc | null>(null);
+  const [inFlight, setInFlight] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Persist the pending mirror so it survives full page reloads and reaches
+  // other tabs (the editor writes the same key after a save).
+  useEffect(() => {
+    lastServer.current = initial;
+  }, [initial]);
+
+  useEffect(() => {
+    writePendingToStorage(pendingRef.current);
+  }, [pending]);
+
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== CASE_STUDIES_PENDING_KEY) return;
+      const fromOtherTab = readPendingFromStorage();
+      const merged: PendingMap = { ...pendingRef.current };
+      for (const [id, entry] of Object.entries(fromOtherTab)) {
+        merged[id] = entry;
+      }
+      pendingRef.current = merged;
+      setPending(merged);
+      replant();
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
+  /** Re-derive the visible boards from the latest server snapshot + pending. */
+  function replant() {
+    setItems(groupByStatus(mergePending(lastServer.current, pendingRef.current)));
+  }
 
   // Re-derive lists when the server sends a fresh snapshot (a save in another
-  // tab triggers router.refresh(), but useState must resync with the new props).
+  // tab triggers router.refresh(), but useState must resync with new props).
   if (initial !== prevInitial) {
     setPrevInitial(initial);
-    setItems(groupByStatus(initial));
+    lastServer.current = initial;
+    const pruned = prunePending(initial, pendingRef.current);
+    if (pruned !== pendingRef.current) {
+      pendingRef.current = pruned;
+      setPending(pruned);
+    }
+    replant();
   }
+
+  const markPending = (entries: PendingCardType | PendingCardType[]) => {
+    const list = Array.isArray(entries) ? entries : [entries];
+    const merged: PendingMap = { ...pendingRef.current };
+    for (const entry of list) merged[entry.id] = entry;
+    pendingRef.current = merged;
+    setPending(merged);
+  };
+
+  const forgetPending = (ids: string[]) => {
+    const merged: PendingMap = { ...pendingRef.current };
+    for (const id of ids) delete merged[id];
+    pendingRef.current = merged;
+    setPending(merged);
+  };
+
+  const begin = () => setInFlight((n) => n + 1);
+  const end = () => setInFlight((n) => Math.max(0, n - 1));
 
   const handleDelete = (doc: CaseStudyDoc) => setDeleting(doc);
 
   const confirmDelete = (doc: CaseStudyDoc) => {
     const key = doc.status === "archived" ? "archived" : "published";
+    markPending({
+      kind: "delete",
+      id: doc.id,
+      status: key,
+      order: doc.order ?? 0,
+      savedAt: doc.savedAt,
+      title: caseStudyDocTitle(doc),
+      cover: doc.cover,
+      at: Date.now(),
+    });
+    setDeleting(null);
+    setItems((prev) => ({
+      ...prev,
+      [key]: prev[key].filter((d) => d.id !== doc.id),
+    }));
+
+    begin();
     fetch(`/api/case-studies/${doc.id}`, { method: "DELETE" })
       .then((res) => {
         if (!res.ok) throw new Error(`DELETE ${doc.id} failed (${res.status})`);
-        setItems((prev) => ({
-          ...prev,
-          [key]: prev[key].filter((d) => d.id !== doc.id),
-        }));
       })
-      .catch((error) => console.error("Delete failed:", error))
-      .finally(() => setDeleting(null));
+      .catch((error) => {
+        console.error("Delete failed:", error);
+        forgetPending([doc.id]);
+        replant();
+      })
+      .finally(end);
   };
 
   const sensors = useSensors(
@@ -290,7 +464,7 @@ export default function DashboardBoard({ initial }: { initial: CaseStudyDoc[] })
       const overStatus = isStatus(overId) ? overId : containerFor(items, overId);
       if (!overStatus) return;
 
-      let next: Record<CaseStudyStatus, CaseStudyDoc[]> | null = null;
+      let next: Grouped | null = null;
 
       if (from === overStatus) {
         const list = [...items[from]];
@@ -317,10 +491,26 @@ export default function DashboardBoard({ initial }: { initial: CaseStudyDoc[] })
 
       const prev = items;
       setItems(next);
-      persistOrder(next, prev, from, overStatus, setItems);
+      persistOrder(next, prev, from, overStatus, begin, end, markPending, forgetPending, replant);
     },
     [items],
   );
+
+  const pendingCount = Object.keys(pending).length;
+  const syncingFor: Record<CaseStudyStatus, boolean> = {
+    published: false,
+    archived: false,
+  };
+  for (const entry of Object.values(pending)) {
+    syncingFor[entry.status] = true;
+  }
+
+  const handleRefresh = () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    router.refresh();
+    window.setTimeout(() => setRefreshing(false), 900);
+  };
 
   return (
     <DndContext
@@ -329,12 +519,39 @@ export default function DashboardBoard({ initial }: { initial: CaseStudyDoc[] })
       onDragEnd={handleDragEnd}
       onDragCancel={() => setActive(null)}
     >
+      <div className="dashboard-toolbar">
+        <span className="dashboard-toolbar__status" aria-live="polite">
+          {inFlight > 0 ? (
+            <>
+              <span className="sync-spinner" aria-hidden="true" />
+              Updating…
+            </>
+          ) : pendingCount > 0 ? (
+            <>
+              <span className="sync-spinner" aria-hidden="true" />
+              {pendingCount} change{pendingCount === 1 ? "" : "s"} still syncing…
+            </>
+          ) : (
+            "All synced"
+          )}
+        </span>
+        <button
+          type="button"
+          className="btn secondary-btn dashboard-refresh"
+          onClick={handleRefresh}
+          disabled={refreshing}
+        >
+          {refreshing ? "Refreshing…" : "Refresh"}
+        </button>
+      </div>
+
       <div className="dashboard-board">
         {STATUSES.map((status) => (
           <SectionRail
             key={status}
             status={status}
             docs={items[status]}
+            syncing={syncingFor[status] || inFlight > 0}
             onDelete={handleDelete}
           />
         ))}
@@ -369,33 +586,60 @@ export default function DashboardBoard({ initial }: { initial: CaseStudyDoc[] })
 }
 
 function persistOrder(
-  next: Record<CaseStudyStatus, CaseStudyDoc[]>,
-  prev: Record<CaseStudyStatus, CaseStudyDoc[]>,
+  next: Grouped,
+  prev: Grouped,
   from: CaseStudyStatus,
   to: CaseStudyStatus,
-  setItems: Dispatch<SetStateAction<Record<CaseStudyStatus, CaseStudyDoc[]>>>,
+  begin: () => void,
+  end: () => void,
+  markPending: (entries: PendingCardType[] | PendingCardType) => void,
+  forgetPending: (ids: string[]) => void,
+  replant: () => void,
 ): void {
   const changed = new Set([from, to]);
-  const updates = [];
+  const updates: { id: string; status: CaseStudyStatus; order: number }[] = [];
+  const pendingEntries: PendingCardType[] = [];
+  const at = Date.now();
+
   for (const status of changed) {
     if (next[status].map((d) => d.id).join() === prev[status].map((d) => d.id).join()) {
       continue;
     }
     for (const [index, doc] of next[status].entries()) {
       updates.push({ id: doc.id, status, order: index });
+      pendingEntries.push({
+        kind: "set",
+        id: doc.id,
+        status,
+        order: index,
+        savedAt: doc.savedAt,
+        title: caseStudyDocTitle(doc),
+        cover: doc.cover,
+        at,
+      });
     }
   }
   if (updates.length === 0) return;
 
+  const affectedIds = updates.map((u) => u.id);
+  markPending(pendingEntries);
+
+  begin();
   fetch("/api/case-studies", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ updates }),
-  }).then((res) => {
-    if (!res.ok) throw new Error(`Reorder failed (${res.status})`);
-    localStorage.setItem(CASE_STUDIES_CHANGED_KEY, Date.now().toString());
-  }).catch((error) => {
-    console.error("Reorder failed:", error);
-    setItems(prev);
-  });
+  })
+    .then((res) => {
+      if (!res.ok) throw new Error(`Reorder failed (${res.status})`);
+      if (typeof window !== "undefined") {
+        localStorage.setItem(CASE_STUDIES_CHANGED_KEY, Date.now().toString());
+      }
+    })
+    .catch((error) => {
+      console.error("Reorder failed:", error);
+      forgetPending(affectedIds);
+      replant();
+    })
+    .finally(end);
 }

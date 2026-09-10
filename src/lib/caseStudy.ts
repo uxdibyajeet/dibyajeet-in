@@ -11,6 +11,62 @@ export const CASE_STUDY_PREVIEW_SLUG = "preview";
  */
 export const CASE_STUDIES_CHANGED_KEY = "portfolio-case-studies-changed";
 
+/**
+ * localStorage mirror of "changes that have been written but may not be
+ * visible to a fresh server read yet" (Vercel Blob overwrites propagate with
+ * a delay). The dashboard overlays this over server data so refreshes during
+ * the propagation window keep showing the user's intent, and clears each entry
+ * once a fresh server read confirms it.
+ */
+export const CASE_STUDIES_PENDING_KEY = "portfolio-case-studies-pending";
+
+/** Longest a pending change is kept unless a fresh server read confirms it. */
+export const PENDING_MAX_AGE_MS = 45_000;
+
+export interface PendingCard {
+  kind: "set" | "delete";
+  id: string;
+  status: CaseStudyStatus;
+  order: number;
+  savedAt: string;
+  title: string;
+  cover: CoverSnapshot | null;
+  at: number;
+}
+
+export function readPendingFromStorage(): Record<string, PendingCard> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(CASE_STUDIES_PENDING_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw) as Record<string, PendingCard>;
+    const out: Record<string, PendingCard> = {};
+    const now = Date.now();
+    for (const [id, entry] of Object.entries(parsed)) {
+      if (!entry || typeof entry !== "object" || typeof entry.id !== "string") continue;
+      if (now - Number(entry.at) > PENDING_MAX_AGE_MS) continue;
+      out[id] = entry;
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+export function writePendingToStorage(pending: Record<string, PendingCard>): void {
+  if (typeof window === "undefined") return;
+  try {
+    const now = Date.now();
+    const fresh: Record<string, PendingCard> = {};
+    for (const [id, entry] of Object.entries(pending)) {
+      if (now - Number(entry.at) <= PENDING_MAX_AGE_MS) fresh[id] = entry;
+    }
+    window.localStorage.setItem(CASE_STUDIES_PENDING_KEY, JSON.stringify(fresh));
+  } catch {
+    // storage full/unavailable — pending stays best-effort in memory only
+  }
+}
+
 export type CaseStudyStatus = "published" | "archived";
 
 export interface CaseStudyDuration {

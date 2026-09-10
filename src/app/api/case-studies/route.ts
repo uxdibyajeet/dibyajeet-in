@@ -21,7 +21,10 @@ export async function POST() {
   const unauthorized = await requireUser();
   if (unauthorized) return unauthorized;
   const doc = await createCaseStudy();
-  return NextResponse.json({ slug: doc.id }, { status: 201 });
+  return NextResponse.json(
+    { slug: doc.id, order: doc.order, savedAt: doc.savedAt },
+    { status: 201 },
+  );
 }
 
 /**
