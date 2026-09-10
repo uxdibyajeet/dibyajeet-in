@@ -13,11 +13,12 @@ import { type Json, deleteKey, listKeys, readJson, writeJson } from "./storage";
  * index to read-modify-write, so concurrent updates cannot lose data: every
  * write overwrites exactly one document key atomically.
  *
- * When Vercel KV is configured, the full documents are also mirrored in KV as
- * `portfolio:cs:docs` so list/single reads are strongly-consistent and instant
- * instead of waiting out Blob's eventual-consistency after each overwrite.
- * Blob is always written first and stays the durable source of truth; KV is
- * repaired/seeded on every list that finds it missing or stale.
+ * When an Upstash Redis instance is configured, the full documents are also
+ * mirrored in Redis under `portfolio:cs:docs` so list/single reads are
+ * strongly-consistent and instant instead of waiting out Blob's
+ * eventual-consistency after each overwrite. Blob is always written first and
+ * stays the durable source of truth; Redis is repaired/seeded on every list
+ * that finds it missing or stale.
  */
 
 function keyFor(slug: string): string | null {

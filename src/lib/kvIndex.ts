@@ -1,26 +1,33 @@
-import { createClient } from "@vercel/kv";
+import { Redis } from "@upstash/redis";
 import type { CaseStudyDoc } from "./caseStudy";
 
 /**
- * Vercel KV index for case-study documents.
+ * Redis index for case-study documents.
  *
- * Blob is the durable source of truth (one doc == one blob); KV mirrors the
+ * Blob is the durable source of truth (one doc == one blob); Redis mirrors the
  * full documents under a single JSON key so lists and single-doc reads are
  * strongly-consistent and instant, instead of waiting out Blob's eventual
- * consistency after overwrites. Every write path updates Blob first, then KV.
+ * consistency after overwrites. Every write path updates Blob first, then
+ * Redis.
  *
- * When KV is not configured (no env vars) every function no-ops and the app
+ * Works with any Upstash Redis instance, including the "Upstash Redis"
+ * integration from the Vercel Marketplace. Credentials are read from
+ * `UPSTASH_REDIS_REST_URL`/`UPSTASH_REDIS_REST_TOKEN` (with a fallback to the
+ * legacy Vercel KV names `KV_REST_API_URL`/`KV_REST_API_TOKEN`).
+ *
+ * When Redis is not configured (no env vars) every function no-ops and the app
  * falls back to reading Blob directly.
  */
 
 const KEY = "portfolio:cs:docs";
 
-const KV_URL = process.env.KV_REST_API_URL;
-const KV_TOKEN = process.env.KV_REST_API_TOKEN;
+const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL ?? process.env.KV_REST_API_URL;
+const REDIS_TOKEN =
+  process.env.UPSTASH_REDIS_REST_TOKEN ?? process.env.KV_REST_API_TOKEN;
 
 const kv =
-  typeof window === "undefined" && KV_URL && KV_TOKEN
-    ? createClient({ url: KV_URL, token: KV_TOKEN })
+  typeof window === "undefined" && REDIS_URL && REDIS_TOKEN
+    ? new Redis({ url: REDIS_URL, token: REDIS_TOKEN })
     : null;
 
 export const kvAvailable = Boolean(kv);
