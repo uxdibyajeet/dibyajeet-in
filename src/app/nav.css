@@ -53,6 +53,12 @@
   .editor-header {
     padding: 1rem;
   }
+
+  .btn-group {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
 }
 
 .active {

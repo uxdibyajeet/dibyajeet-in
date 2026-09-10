@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { navRoutes, routes } from "@/lib/routes";
 import { renderIcon } from "@/components/icons";
 import LogoutButton from "@/components/LogoutButton";
@@ -14,6 +14,7 @@ import {
   CASE_STUDY_PREVIEW_SLUG,
   readPendingFromStorage,
   writePendingToStorage,
+  type CaseStudyDoc,
   type CaseStudyStatus,
   type PendingCard,
 } from "@/lib/caseStudy";
@@ -124,50 +125,56 @@ function EditorNav() {
     };
   }, [slug]);
 
-  const persistDoc = async (status: CaseStudyStatus): Promise<boolean> => {
+  const persistDoc = async (): Promise<CaseStudyDoc | null> => {
     setSaving(true);
     try {
-      const doc = await buildCaseStudyDoc(slug, status);
+      const doc = await buildCaseStudyDoc(slug, status ?? "archived");
       const res = await fetch(`/api/case-studies/${slug}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(doc),
+        body: JSON.stringify({ ...doc, status: undefined }),
       });
       if (!res.ok) throw new Error("Failed to save case study");
-      setProjectTitle(caseStudyDocTitle(doc));
-      setStatus(status);
-      setLastSaved(doc.savedAt);
+      const saved: CaseStudyDoc = await res.json();
+      setProjectTitle(caseStudyDocTitle(saved));
+      setStatus(saved.status);
+      setLastSaved(saved.savedAt);
       setToast({ kind: "success", message: "Saved" });
       if (typeof window !== "undefined") {
         const entry: PendingCard = {
           kind: "set",
           id: slug,
-          status,
+          status: saved.status,
           order: existingOrder,
-          savedAt: doc.savedAt,
-          title: caseStudyDocTitle(doc),
-          cover: doc.cover,
+          savedAt: saved.savedAt,
+          title: caseStudyDocTitle(saved),
+          cover: saved.cover,
           at: Date.now(),
         };
         writePendingToStorage({ ...readPendingFromStorage(), [slug]: entry });
         localStorage.setItem(CASE_STUDIES_CHANGED_KEY, Date.now().toString());
       }
-      return true;
+      return saved;
     } catch (error) {
       console.error("Save failed:", error);
       setToast({ kind: "error", message: "Save failed — try again" });
-      return false;
+      return null;
     } finally {
       setSaving(false);
     }
   };
 
-  const handleSaveAndPreview = async () => {
+  const handleSave = async () => {
+    if (saving) return;
+    await persistDoc();
+  };
+
+  const handlePreview = async () => {
     if (saving || previewing) return;
     setPreviewing(true);
     try {
-      const ok = await persistDoc(status ?? "archived");
-      if (!ok) throw new Error("Failed to save case study");
+      const saved = await persistDoc();
+      if (!saved) throw new Error("Failed to save case study");
       window.open(`/case-study/${slug}`, "_blank");
     } finally {
       setPreviewing(false);
@@ -176,9 +183,29 @@ function EditorNav() {
 
   const handleNext = async () => {
     if (saving) return;
-    const ok = await persistDoc(status ?? "archived");
-    if (ok) setStep(STEP_CARD);
+    const saved = await persistDoc();
+    if (saved) setStep(STEP_CARD);
   };
+
+  const handleSaveRef = useRef<() => void>(() => {});
+  useEffect(() => {
+    handleSaveRef.current = () => {
+      if (saving) return;
+      void persistDoc();
+    };
+  });
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const mod = e.ctrlKey || e.metaKey;
+      if (mod && !e.shiftKey && !e.altKey && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        handleSaveRef.current();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   return (
     <nav className="editor-header" id="site-navigation">
@@ -194,13 +221,6 @@ function EditorNav() {
         >
           {projectTitle ?? "Untitled"}
         </p>
-        {status ? (
-          <span
-            className={`editor-nav-badge${status === "published" ? " is-published" : ""}`}
-          >
-            {status === "published" ? "Published" : "Saved"}
-          </span>
-        ) : null}
         {lastSaved ? (
           <span className="editor-nav-saved">
             <i className="bi bi-clock" aria-hidden="true" />
@@ -220,29 +240,41 @@ function EditorNav() {
             <i className="bi bi-arrow-left" aria-hidden="true" />
             back
           </button>
-        ) : (
-          <>
-            <button
-              id="preview-btn"
-              className="btn secondary-btn"
-              onClick={handleSaveAndPreview}
-              disabled={previewing || saving}
-              type="button"
-            >
-              {previewing ? "Previewing…" : "Save and Preview"}
-            </button>
-            <button
-              id="next-btn"
-              className="btn primary-btn"
-              onClick={handleNext}
-              disabled={saving}
-              type="button"
-            >
-              {saving ? "Saving…" : "Next"}
-              {!saving ? <i className="bi bi-arrow-right" aria-hidden="true" /> : null}
-            </button>
-          </>
-        )}
+        ) : null}
+        <button
+          id="save-btn"
+          className="btn secondary-btn"
+          onClick={handleSave}
+          disabled={saving}
+          type="button"
+        >
+          <i className="bi bi-check-lg" aria-hidden="true" />
+          {saving ? "Saving…" : "save"}
+        </button>
+        {step === STEP_CASE_STUDY ? (
+          <button
+            id="preview-btn"
+            className="btn secondary-btn"
+            onClick={handlePreview}
+            disabled={previewing || saving}
+            type="button"
+          >
+            <i className="bi bi-eye" aria-hidden="true" />
+            {previewing ? "Opening…" : "preview"}
+          </button>
+        ) : null}
+        {step === STEP_CASE_STUDY ? (
+          <button
+            id="next-btn"
+            className="btn primary-btn"
+            onClick={handleNext}
+            disabled={saving}
+            type="button"
+          >
+            {saving ? "Saving…" : "next"}
+            {!saving ? <i className="bi bi-arrow-right" aria-hidden="true" /> : null}
+          </button>
+        ) : null}
       </div>
 
       {toast ? (
