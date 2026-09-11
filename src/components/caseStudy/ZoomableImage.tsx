@@ -2,12 +2,20 @@
 
 import { useRef, useState } from "react";
 
-const LOUPE_SIZE = 200;
+const LOUPE_MIN = 200;
+const LOUPE_MAX = 320;
 const ZOOM = 2.5;
 const GAP = 14;
 
 function clampPercent(value: number): number {
   return Math.max(0, Math.min(100, value));
+}
+
+/** Clamped, viewport-aware loupe diameter (min 200, grows with screen). */
+function loupeSize(): number {
+  if (typeof window === "undefined") return LOUPE_MIN;
+  const scaled = Math.round(Math.min(window.innerWidth, 1440) * 0.22);
+  return Math.max(LOUPE_MIN, Math.min(LOUPE_MAX, scaled));
 }
 
 /**
@@ -45,11 +53,13 @@ export default function ZoomableImage({
     });
   };
 
+  const size = loupeSize();
+
   let left = cursor.x + GAP;
   let top = cursor.y + GAP;
   if (typeof window !== "undefined") {
-    if (left + LOUPE_SIZE > window.innerWidth - GAP) left = cursor.x - LOUPE_SIZE - GAP;
-    if (top + LOUPE_SIZE > window.innerHeight - GAP) top = cursor.y - LOUPE_SIZE - GAP;
+    if (left + size > window.innerWidth - GAP) left = cursor.x - size - GAP;
+    if (top + size > window.innerHeight - GAP) top = cursor.y - size - GAP;
   }
 
   return (
@@ -76,8 +86,8 @@ export default function ZoomableImage({
           style={{
             left,
             top,
-            width: LOUPE_SIZE,
-            height: LOUPE_SIZE,
+            width: size,
+            height: size,
             backgroundImage: `url("${src}")`,
             backgroundRepeat: "no-repeat",
             backgroundSize: `${view.w}px ${view.h}px`,
