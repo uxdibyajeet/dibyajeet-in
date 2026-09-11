@@ -1,4 +1,5 @@
 import { cloneElement, Fragment, isValidElement, type ReactElement, type ReactNode } from "react";
+import ZoomableImage from "./ZoomableImage";
 
 interface Block {
   type: string;
@@ -124,12 +125,12 @@ function renderBlockContent(block: Block): ReactNode {
       if (typeof src !== "string") return null;
       const caption = typeof data.caption === "string" ? data.caption : "";
       return (
-        <figure className="cdx-image">
-          <img src={src} alt={caption} loading="lazy" />
-          {caption ? (
-            <figcaption className="cdx-image__caption text-caption">{caption}</figcaption>
-          ) : null}
-        </figure>
+        <ZoomableImage
+          src={src}
+          alt={caption}
+          caption={caption}
+          stretched={isStretched(block)}
+        />
       );
     }
 
@@ -228,6 +229,10 @@ function renderBlockContent(block: Block): ReactNode {
 function renderBlock(block: Block): ReactNode {
   const node = renderBlockContent(block);
   if (!wantsStretch(block)) return node;
+
+  // Images are handled by the ZoomableImage client component, which applies
+  // the stretch class itself.
+  if (block.type === "image") return node;
 
   if (isValidElement(node)) {
     const element = node as ReactElement<{ className?: unknown }>;

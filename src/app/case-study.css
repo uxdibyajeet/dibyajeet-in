@@ -254,12 +254,25 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   display: block;
+  cursor: zoom-in;
 }
 
 .case-study-content .cdx-image__caption {
   text-align: center;
   color: var(--text-muted);
   margin-top: 0.5rem;
+}
+
+/* Image loupe — 200×200px circular zoom preview following the cursor */
+.case-study-content .image-loupe {
+  position: fixed;
+  border-radius: 50%;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1000;
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 24px oklch(0% 0 0 / 0.28);
 }
 
 /* Delimiter */
