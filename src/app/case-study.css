@@ -261,6 +261,7 @@
   text-align: center;
   color: var(--text-muted);
   margin-top: 0.5rem;
+  margin-bottom: 3rem;
 }
 
 /* Image loupe — 200×200px circular zoom preview following the cursor */

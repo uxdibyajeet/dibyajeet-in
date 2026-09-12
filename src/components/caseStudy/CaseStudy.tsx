@@ -4,6 +4,7 @@ import {
   type CaseStudyDoc,
   type CaseStudyDuration,
 } from "@/lib/caseStudy";
+import { ViewTransition } from "react";
 import BlockRenderer from "./BlockRenderer";
 
 function dateToken(value: string): string {
@@ -29,14 +30,20 @@ export default function CaseStudy({ doc }: { doc: CaseStudyDoc }) {
   return (
     <>
       {cover ? (
-        <div
-          className="case-study-cover full-bleed"
-          style={{
-            backgroundImage: `url("${cover.dataUrl}")`,
-            backgroundSize: "cover",
-            backgroundPosition: `${cover.position?.x ?? 50}% ${cover.position?.y ?? 50}%`,
-          }}
-        />
+        <ViewTransition
+          name={`case-cover-${doc.id}`}
+          share="morph"
+          default="none"
+        >
+          <div
+            className="case-study-cover full-bleed"
+            style={{
+              backgroundImage: `url("${cover.dataUrl}")`,
+              backgroundSize: "cover",
+              backgroundPosition: `${cover.position?.x ?? 50}% ${cover.position?.y ?? 50}%`,
+            }}
+          />
+        </ViewTransition>
       ) : null}
 
       <article className="span-12 case-study-header" aria-label="Project details">

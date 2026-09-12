@@ -1,10 +1,20 @@
 import Image from "next/image";
-import ProjectCard from "@/components/home/ProjectCard";
+import { ViewTransition } from "react";
+import ProjectRail from "@/components/home/ProjectRail";
+import RevealOnScroll, {
+  HOME_REVEAL_GROUPS,
+} from "@/components/RevealOnScroll";
 import { CASE_STUDY_PREVIEW_SLUG } from "@/lib/caseStudy";
 import { listCaseStudies } from "@/lib/caseStudyServer";
 import "./home.css";
 
 export const dynamic = "force-dynamic";
+
+const directional = {
+  "nav-forward": "nav-forward",
+  "nav-back": "nav-back",
+  default: "none",
+};
 
 export default async function Home() {
   const docs = (await listCaseStudies())
@@ -16,7 +26,8 @@ export default async function Home() {
     );
 
   return (
-    <main className="main">
+    <ViewTransition enter={directional} exit={directional} default="none">
+      <main className="main">
       <section className="span-12">
         <div className="hero-section">
           <span className="text-col">
@@ -41,13 +52,9 @@ export default async function Home() {
           </span>
         </div>
       </section>
-      <section className="span-12">
-        <div className="project-grid">
-          {docs.map((doc) => (
-            <ProjectCard key={doc.id} doc={doc} />
-          ))}
-        </div>
-      </section>
-    </main>
+      <ProjectRail docs={docs} />
+      <RevealOnScroll groups={HOME_REVEAL_GROUPS} />
+      </main>
+    </ViewTransition>
   );
 }

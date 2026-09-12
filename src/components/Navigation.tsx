@@ -29,7 +29,12 @@ function DefaultNav() {
   return (
     <nav className="global-nav" id="site-navigation">
       <div className="left-div">
-        <Link href="/" data-link="" aria-label="Home">
+        <Link
+          href="/"
+          data-link=""
+          aria-label="Home"
+          transitionTypes={["nav-back"]}
+        >
           <Logo />
         </Link>
       </div>
@@ -46,6 +51,9 @@ function DefaultNav() {
               href={route.path}
               data-link=""
               className={`text-base nav-link${active ? " active" : ""}`}
+              transitionTypes={
+                route.path === "/about" ? ["nav-forward"] : undefined
+              }
             >
               {route.label ?? route.path}
             </Link>

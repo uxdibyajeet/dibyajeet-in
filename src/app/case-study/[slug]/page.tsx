@@ -4,6 +4,9 @@ import CaseStudy from "@/components/caseStudy/CaseStudy";
 import MoreProjects from "@/components/MoreProjects";
 import { auth } from "@/auth";
 import { readCaseStudy, listCaseStudies } from "@/lib/caseStudyServer";
+import RevealOnScroll, {
+  CASE_STUDY_REVEAL_GROUPS,
+} from "@/components/RevealOnScroll";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +40,7 @@ export default async function CaseStudyPage({
     <main className="main">
       <CaseStudy doc={doc} />
       <MoreProjects docs={allDocs} currentSlug={slug} />
+      <RevealOnScroll groups={CASE_STUDY_REVEAL_GROUPS} />
     </main>
   );
 }
