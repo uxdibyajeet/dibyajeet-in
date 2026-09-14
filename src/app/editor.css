@@ -336,15 +336,12 @@
    Toolbar (plus button, settings button)
    ========================= */
 
-/* EditorJS positions .ce-toolbar absolutely (top is set in JS per block).
-   On desktop we widen the toolbar content so the actions flock
-   (plus + settings) sit in the far-left gutter instead of hugging a
-   centered block — keeps them clear of full-width (stretched) blocks. */
+/* The actions flock (right: 100%) is anchored to the left edge of the
+   toolbar's content column (max-width 650px, centered) — EditorJS puts
+   it just outside the content. Keep the gap tight (~0.5rem). */
 @media (min-width: 651px) {
-  .codex-editor .ce-toolbar__content {
-    max-width: none;
-    margin-left: 0;
-    margin-right: 0;
+  .codex-editor .ce-toolbar__actions {
+    padding-right: 0.5rem;
   }
 }
 
