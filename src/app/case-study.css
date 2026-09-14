@@ -18,7 +18,10 @@
 }
 
 .case-study-header .text-hero {
-  margin: 0;
+  font-size: var(--text-headline-1); /* 40px — same token scale as content headings */
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+  margin: 0 0 2rem; /* footer margin steps down with heading rank */
 }
 
 .case-study-header .text-hero,
@@ -110,33 +113,32 @@
   max-width: none;
 }
 
-/* Headings */
-.case-study-content h1 {
+/* Headings — EditorJS ce-header blocks. Sizes come from the style.css
+   token scale; bottom margins step down with the heading rank. */
+.case-study-content .ce-header {
   font-family: var(--font-display);
-  font-size: var(--text-headline-1);
   font-weight: var(--weight-semibold);
   line-height: var(--leading-snug);
-  letter-spacing: var(--tracking-tight);
-  color: var(--text);
+  color: var(--cs-heading);
 }
 
-.case-study-content h2 {
-  font-family: var(--font-display);
+.case-study-content h1.ce-header {
+  font-size: var(--text-headline-1); /* 40px */
+  letter-spacing: var(--tracking-tight);
+  margin-top: 2.5rem; /* 40px */
+  margin-bottom: 2rem; /* 32px */
+}
+
+.case-study-content h2.ce-header {
   font-size: var(--text-headline-2); /* 30px */
-  font-weight: var(--weight-semibold);
-  line-height: var(--leading-snug);
   letter-spacing: var(--tracking-normal);
-  color: var(--cs-heading);
   margin-top: 3rem; /* 48px */
   margin-bottom: 1rem; /* 16px */
 }
 
-.case-study-content h3 {
-  font-family: var(--font-display);
+.case-study-content h3.ce-header {
   font-size: var(--text-headline-3); /* 22px */
-  font-weight: var(--weight-semibold);
-  line-height: var(--leading-snug);
-  color: var(--cs-heading);
+  margin-top: 1.5rem; /* 24px */
   margin-bottom: 0.5rem; /* 8px */
 }
 
