@@ -2,18 +2,18 @@
 
 import { useRef, useState } from "react";
 
-const LOUPE_SIZE = 200;
+const LOUPE_SIZE = 280;
 const ZOOM = 2.5;
-const GAP = 14;
+const GAP = 8;
 
 function clampPercent(value: number): number {
   return Math.max(0, Math.min(100, value));
 }
 
 /**
- * Case-study image block with a hover loupe: a 200×200px circular zoom
- * preview that follows the pointer beside the cursor. Attaches only to the
- * `cdx-image` blocks rendered on the case study page.
+ * Case-study image block with a hover loupe: a 280×280px circular zoom
+ * preview centered on the pointer. Attaches only to the `cdx-image`
+ * blocks rendered on the case study page.
  */
 export default function ZoomableImage({
   src,
@@ -45,11 +45,15 @@ export default function ZoomableImage({
     });
   };
 
-  let left = cursor.x + GAP;
-  let top = cursor.y + GAP;
+  let left = cursor.x - LOUPE_SIZE / 2;
+  let top = cursor.y - LOUPE_SIZE / 2;
   if (typeof window !== "undefined") {
-    if (left + LOUPE_SIZE > window.innerWidth - GAP) left = cursor.x - LOUPE_SIZE - GAP;
-    if (top + LOUPE_SIZE > window.innerHeight - GAP) top = cursor.y - LOUPE_SIZE - GAP;
+    if (left < GAP) left = GAP;
+    if (top < GAP) top = GAP;
+    if (left + LOUPE_SIZE > window.innerWidth - GAP)
+      left = window.innerWidth - LOUPE_SIZE - GAP;
+    if (top + LOUPE_SIZE > window.innerHeight - GAP)
+      top = window.innerHeight - LOUPE_SIZE - GAP;
   }
 
   return (

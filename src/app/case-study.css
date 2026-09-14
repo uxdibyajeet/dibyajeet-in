@@ -295,7 +295,7 @@
   margin-bottom: 3rem;
 }
 
-/* Image loupe — 200×200px circular zoom preview following the cursor */
+/* Image loupe — 280×280px circular zoom preview centered on the pointer */
 .case-study-content .image-loupe {
   position: fixed;
   border-radius: 50%;
