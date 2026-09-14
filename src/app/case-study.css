@@ -74,6 +74,7 @@
 
 .case-study-content {
   --cs-heading: #111827;
+  --cs-subheading: #6b7280;
   --cs-body: #374151;
   padding: 3rem 0 2rem;
 }
@@ -113,31 +114,33 @@
   max-width: none;
 }
 
-/* Headings — EditorJS ce-header blocks. Sizes come from the style.css
-   token scale; bottom margins step down with the heading rank. */
+/* Headings — EditorJS ce-header blocks. Sizes are hard px values forming a
+   clear hierarchy (40/32/21/17); bottom margins step down with rank. */
 .case-study-content .ce-header {
   font-family: var(--font-display);
   font-weight: var(--weight-semibold);
   line-height: var(--leading-snug);
-  color: var(--cs-heading);
 }
 
 .case-study-content h1.ce-header {
-  font-size: var(--text-headline-1); /* 40px */
+  font-size: 40px;
   letter-spacing: var(--tracking-tight);
+  color: var(--cs-heading);
   margin-top: 2.5rem; /* 40px */
   margin-bottom: 2rem; /* 32px */
 }
 
 .case-study-content h2.ce-header {
-  font-size: var(--text-headline-2); /* 30px */
+  font-size: 32px;
   letter-spacing: var(--tracking-normal);
+  color: var(--cs-heading);
   margin-top: 3rem; /* 48px */
   margin-bottom: 1rem; /* 16px */
 }
 
 .case-study-content h3.ce-header {
-  font-size: var(--text-headline-3); /* 22px */
+  font-size: 21px;
+  color: var(--cs-subheading);
   margin-top: 1.5rem; /* 24px */
   margin-bottom: 0.5rem; /* 8px */
 }
@@ -146,17 +149,17 @@
 .case-study-content h5,
 .case-study-content h6 {
   font-family: var(--font-display);
-  font-size: 1.125rem;
+  font-size: 18px;
   font-weight: var(--weight-semibold);
   line-height: var(--leading-snug);
-  color: var(--text);
+  color: var(--cs-subheading);
 }
 
 /* Paragraphs + caption */
 .case-study-content .ce-paragraph,
 .case-study-content .callout-banner__message {
   font-family: var(--font-body);
-  font-size: var(--text-base);
+  font-size: 17px;
   font-weight: var(--weight-regular);
   line-height: var(--leading-relaxed);
   letter-spacing: var(--tracking-normal);
@@ -198,9 +201,9 @@
 
 .case-study-content li {
   font-family: var(--font-body);
-  font-size: var(--text-base);
+  font-size: 17px;
   line-height: var(--leading-relaxed);
-  color: var(--text);
+  color: var(--cs-body);
 }
 
 .case-study-content li > ul,
@@ -426,5 +429,6 @@
 
 :root[data-theme="dark"] .case-study-content {
   --cs-heading: var(--color-neutral-100);
+  --cs-subheading: var(--color-neutral-400);
   --cs-body: var(--color-neutral-300);
 }
