@@ -23,18 +23,18 @@
   --ce-accent: var(--primary);
   --ce-accent-soft: var(--color-primary-100);
   /* Text hierarchy mirrors the case-study page render */
-  --cs-heading: #111827;
-  --cs-subheading: #6b7280;
-  --cs-body: #374151;
-  --cs-eyebrow: var(--color-sage-600);
+  --cs-heading: var(--color-neutral-900);
+  --cs-subheading: var(--color-primary-700);
+  --cs-body: var(--color-neutral-950);
+  --cs-eyebrow: var(--color-neutral-700);
 }
 
 :root[data-theme="dark"] .codex-editor {
   --ce-surface-2: var(--color-neutral-800);
   --cs-heading: var(--color-neutral-100);
-  --cs-subheading: var(--color-neutral-400);
+  --cs-subheading: var(--color-primary-300);
   --cs-body: var(--color-neutral-300);
-  --cs-eyebrow: var(--color-sage-400);
+  --cs-eyebrow: var(--color-neutral-400);
 }
 
 /* Save / preview buttons in the editor header */
@@ -121,7 +121,7 @@
   text-transform: uppercase;
   line-height: var(--leading-normal);
   color: var(--cs-eyebrow);
-  margin: 0 0 0.5rem;
+  margin: 0 auto 0.5rem;
 }
 
 .codex-editor .caption-tool {

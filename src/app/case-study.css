@@ -12,32 +12,35 @@
    ========================= */
 
 .case-study-header {
-  --cs-meta-label: #6b7280;
-  --cs-meta-value: #111827;
-  padding-top: 3rem;
+  --cs-meta-label: var(--color-neutral-600);
+  --cs-meta-value: var(--color-neutral-900);
+  padding-top: 1rem;
+
+  display: flex;
+  flex-direction: column;
 }
 
 .case-study-header .text-hero {
-  font-size: var(--text-headline-1); /* 40px — same token scale as content headings */
+  font-size: var(--text-hero); /* 40px — same token scale as content headings */
   font-weight: var(--weight-semibold);
   letter-spacing: var(--tracking-tight);
+  text-align: center;
   margin: 0 0 2rem; /* footer margin steps down with heading rank */
 }
 
 .case-study-header .text-hero,
-.case-study-header .case-study-meta {
+.case-study-header {
   max-width: var(--text-measure);
   margin-inline: auto;
 }
 
 .case-study-meta {
   display: flex;
+  justify-content: space-between;
   flex-wrap: wrap;
-  gap: 1.25rem 3rem;
-  margin-top: 1.5rem;
-  margin-bottom: 0;
-  padding-top: 1.5rem;
-  padding-bottom: 1.5rem;
+  /* gap: 1.25rem 3rem; */
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
 }
@@ -73,11 +76,11 @@
 }
 
 .case-study-content {
-  --cs-heading: #111827;
-  --cs-subheading: #6b7280;
-  --cs-body: #374151;
-  --cs-eyebrow: var(--color-sage-600);
-  padding: 3rem 0 2rem;
+  --cs-heading: var(--color-neutral-900);
+  --cs-subheading: var(--color-primary-700);
+  --cs-body: var(--color-neutral-950);
+  --cs-eyebrow: var(--color-neutral-700);
+  padding-bottom: 2rem;
 }
 
 .case-study-content > * {
@@ -157,7 +160,7 @@
   text-transform: uppercase;
   line-height: var(--leading-normal);
   color: var(--cs-eyebrow);
-  margin: 0 0 0.5rem; /* 8px */
+  margin: 0 auto 0.5rem; /* 8px */
 }
 
 .case-study-content h4,
@@ -444,7 +447,7 @@
 
 :root[data-theme="dark"] .case-study-content {
   --cs-heading: var(--color-neutral-100);
-  --cs-subheading: var(--color-neutral-400);
+  --cs-subheading: var(--color-primary-300);
   --cs-body: var(--color-neutral-300);
-  --cs-eyebrow: var(--color-sage-400);
+  --cs-eyebrow: var(--color-neutral-400);
 }
