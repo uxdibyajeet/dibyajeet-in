@@ -30,22 +30,24 @@ export default function ProjectCard({ doc }: { doc: CaseStudyDoc }) {
           <i className="bi bi-image" />
         </span>
       )}
-      <span className="project-card__body">
-        <span className="project-card__reading text-caption">
-          <i className="bi bi-clock" aria-hidden="true" />
-          ~{readingTime} min read
-        </span>
-        <h3 className="project-card__title text-headline-2">{title}</h3>
-        {description ? <p className="project-card__desc text-base">{description}</p> : null}
-        {tags.length > 0 ? (
-          <span className="project-card__tags">
-            {tags.map((tag) => (
-              <span key={tag} className="project-card__tag text-caption">
-                {tag}
-              </span>
-            ))}
+      <span className="project-card__overlay">
+        <span className="project-card__wrap">
+          <span className="project-card__reading text-caption">
+            <i className="bi bi-clock" aria-hidden="true" />
+            ~{readingTime} min read
           </span>
-        ) : null}
+          <h3 className="project-card__title text-headline-2">{title}</h3>
+          {description ? <p className="project-card__desc text-base">{description}</p> : null}
+          {tags.length > 0 ? (
+            <span className="project-card__tags">
+              {tags.map((tag) => (
+                <span key={tag} className="project-card__tag text-caption">
+                  {tag}
+                </span>
+              ))}
+            </span>
+          ) : null}
+        </span>
       </span>
     </Link>
   );

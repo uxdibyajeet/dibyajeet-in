@@ -42,6 +42,7 @@
 
 .more-projects__track {
   display: flex;
+  align-items: flex-start;
   gap: var(--spacing-m, 1rem);
   overflow-x: auto;
   scroll-snap-type: x mandatory;
@@ -66,10 +67,6 @@
 .more-projects__slide {
   flex: 0 0 320px;
   scroll-snap-align: start;
-}
-
-.more-projects__slide .project-card {
-  height: 100%;
 }
 
 @media (min-width: 786px) {

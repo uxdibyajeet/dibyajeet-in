@@ -1,3 +1,6 @@
+import RevealOnScroll, {
+  ABOUT_REVEAL_GROUPS,
+} from "@/components/RevealOnScroll";
 import "../about.css";
 
 export default function About() {
@@ -105,6 +108,7 @@ export default function About() {
           </figure>
         </div>
       </section>
+      <RevealOnScroll groups={ABOUT_REVEAL_GROUPS} />
     </main>
   );
 }

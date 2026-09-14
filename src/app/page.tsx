@@ -1,5 +1,8 @@
 import Image from "next/image";
 import ProjectCard from "@/components/home/ProjectCard";
+import RevealOnScroll, {
+  HOME_REVEAL_GROUPS,
+} from "@/components/RevealOnScroll";
 import { CASE_STUDY_PREVIEW_SLUG } from "@/lib/caseStudy";
 import { listCaseStudies } from "@/lib/caseStudyServer";
 import "./home.css";
@@ -48,6 +51,7 @@ export default async function Home() {
           ))}
         </div>
       </section>
+      <RevealOnScroll groups={HOME_REVEAL_GROUPS} />
     </main>
   );
 }
