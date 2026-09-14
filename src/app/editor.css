@@ -22,10 +22,19 @@
   --ce-text-muted: var(--text-muted);
   --ce-accent: var(--primary);
   --ce-accent-soft: var(--color-primary-100);
+  /* Text hierarchy mirrors the case-study page render */
+  --cs-heading: #111827;
+  --cs-subheading: #6b7280;
+  --cs-body: #374151;
+  --cs-eyebrow: var(--color-sage-600);
 }
 
 :root[data-theme="dark"] .codex-editor {
   --ce-surface-2: var(--color-neutral-800);
+  --cs-heading: var(--color-neutral-100);
+  --cs-subheading: var(--color-neutral-400);
+  --cs-body: var(--color-neutral-300);
+  --cs-eyebrow: var(--color-sage-400);
 }
 
 /* Save / preview buttons in the editor header */
@@ -64,40 +73,55 @@
 
 .codex-editor .ce-paragraph {
   font-family: var(--font-body);
-  font-size: var(--text-base);
+  font-size: 17px;
   line-height: var(--leading-relaxed);
   letter-spacing: var(--tracking-normal);
-  color: var(--text);
+  color: var(--cs-body);
 }
 
 .codex-editor .ce-header {
   font-family: var(--font-display);
-  color: var(--text);
+  color: var(--cs-heading);
   font-weight: var(--weight-semibold);
   line-height: var(--leading-snug);
   letter-spacing: var(--tracking-tight);
-  margin: 0.25em 0;
 }
 
 .codex-editor h1.ce-header {
-  font-size: var(--text-headline-1);
+  font-size: 40px;
+  margin: 2.5rem 0 2rem;
 }
 
 .codex-editor h2.ce-header {
-  font-size: var(--text-headline-2);
+  font-size: 32px;
+  letter-spacing: var(--tracking-normal);
+  margin: 3rem 0 1rem;
 }
 
 .codex-editor h3.ce-header {
-  font-size: 1.5rem;
+  font-size: 21px;
+  font-weight: var(--weight-medium); /* lighter than H1/H2 */
+  color: var(--cs-subheading);
+  margin: 1.5rem 0 0.5rem;
 }
 
-.codex-editor h4.ce-header {
-  font-size: 1.25rem;
-}
-
+.codex-editor h4.ce-header,
 .codex-editor h5.ce-header,
 .codex-editor h6.ce-header {
-  font-size: 1.125rem;
+  font-size: 18px;
+  color: var(--cs-subheading);
+  margin: 1.25rem 0 0.5rem;
+}
+
+.codex-editor .eyebrow {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  line-height: var(--leading-normal);
+  color: var(--cs-eyebrow);
+  margin: 0 0 0.5rem;
 }
 
 .codex-editor .caption-tool {
@@ -118,9 +142,9 @@
 
 .codex-editor .cdx-list {
   font-family: var(--font-body);
-  font-size: var(--text-base);
+  font-size: 17px;
   line-height: var(--leading-relaxed);
-  color: var(--text);
+  color: var(--cs-body);
   padding-left: 1.5em;
 }
 
@@ -144,9 +168,9 @@
 
 .codex-editor .cdx-checklist__item {
   font-family: var(--font-body);
-  font-size: var(--text-base);
+  font-size: 17px;
   line-height: var(--leading-relaxed);
-  color: var(--text);
+  color: var(--cs-body);
 }
 
 .codex-editor .cdx-checklist__item-checkbox {
@@ -168,8 +192,8 @@
 
 .codex-editor .tc-table {
   font-family: var(--font-body);
-  font-size: var(--text-base);
-  color: var(--text);
+  font-size: 17px;
+  color: var(--cs-body);
 }
 
 .codex-editor .tc-table__cell {

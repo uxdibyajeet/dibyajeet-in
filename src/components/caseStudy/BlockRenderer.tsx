@@ -82,6 +82,9 @@ function renderBlockContent(block: Block): ReactNode {
     case "caption":
       return <div className="caption-tool text-caption" dangerouslySetInnerHTML={rawHtml(data.text)} />;
 
+    case "eyebrow":
+      return <p className="eyebrow" dangerouslySetInnerHTML={rawHtml(data.text)} />;
+
     case "list": {
       const ListTag = data.style === "ordered" ? "ol" : "ul";
       return <ListTag className="cdx-list">{renderListItems(data.items)}</ListTag>;

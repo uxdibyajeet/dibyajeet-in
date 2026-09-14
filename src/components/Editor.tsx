@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import type { OutputData } from "@editorjs/editorjs";
 import Caption from "@/lib/editorjs/caption";
+import Eyebrow from "@/lib/editorjs/eyebrow";
 import { compressImage } from "@/lib/compressImage";
 import {
   notifyEditorChange,
@@ -101,10 +102,11 @@ export default function Editor({
             class: Header,
             inlineToolbar: true,
             shortcut: "CMD+SHIFT+H",
-            config: { levels: [1, 2, 3, 4, 5, 6], defaultLevel: 2 },
+            config: { levels: [1, 2, 3], defaultLevel: 2 },
           },
           paragraph: { class: Paragraph as never, inlineToolbar: true },
           caption: { class: Caption, inlineToolbar: true },
+          eyebrow: { class: Eyebrow, inlineToolbar: true },
           list: { class: ListTool, inlineToolbar: true },
           checklist: { class: ChecklistTool, inlineToolbar: true },
           table: {

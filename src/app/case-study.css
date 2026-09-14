@@ -76,6 +76,7 @@
   --cs-heading: #111827;
   --cs-subheading: #6b7280;
   --cs-body: #374151;
+  --cs-eyebrow: var(--color-sage-600);
   padding: 3rem 0 2rem;
 }
 
@@ -93,6 +94,7 @@
 .case-study-content > .ce-header,
 .case-study-content > .ce-paragraph,
 .case-study-content > .caption-tool,
+.case-study-content > .eyebrow,
 .case-study-content > .cdx-list,
 .case-study-content > .cdx-checklist,
 .case-study-content > .cdx-quote,
@@ -140,9 +142,22 @@
 
 .case-study-content h3.ce-header {
   font-size: 21px;
+  font-weight: var(--weight-medium); /* lighter than H1/H2 */
   color: var(--cs-subheading);
   margin-top: 1.5rem; /* 24px */
   margin-bottom: 0.5rem; /* 8px */
+}
+
+/* Eyebrow — small kicker label above sections, smaller than body text */
+.case-study-content .eyebrow {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  line-height: var(--leading-normal);
+  color: var(--cs-eyebrow);
+  margin: 0 0 0.5rem; /* 8px */
 }
 
 .case-study-content h4,
@@ -431,4 +446,5 @@
   --cs-heading: var(--color-neutral-100);
   --cs-subheading: var(--color-neutral-400);
   --cs-body: var(--color-neutral-300);
+  --cs-eyebrow: var(--color-sage-400);
 }
