@@ -27,6 +27,62 @@ const uploadByUrl = async (url: string) => ({
   file: { url },
 });
 
+type EditorWithBlocks = { blocks: { getCurrentBlockIndex: () => number } };
+
+/**
+ * EditorJS computes the toolbar `top` relative to the block's *first
+ * input* (so the plus button rides tall headings or tall media).
+ * We pin it back to the top edge of the hovered/current block so the
+ * plus + settings buttons always float beside the start of the block
+ * content. Desktop only — mobile lays the toolbar out differently.
+ */
+function pinToolbarToCurrentBlock(holder: HTMLElement, editor: EditorWithBlocks): () => void {
+  const toolbar = holder.querySelector<HTMLElement>(".ce-toolbar");
+  const redactor = holder.querySelector<HTMLElement>(".codex-editor__redactor");
+  if (!toolbar || !redactor || window.matchMedia("(max-width: 650px)").matches) {
+    return () => {};
+  }
+
+  let hovered = holder.querySelector<HTMLElement>(".ce-block");
+  let raf = 0;
+
+  const onOver = (event: Event) => {
+    const el = (event.target as Element | null)?.closest?.(".ce-block");
+    hovered = el instanceof HTMLElement ? el : null;
+  };
+
+  const pin = () => {
+    raf = 0;
+    if (!toolbar.classList.contains("ce-toolbar--opened")) return;
+    const index = editor.blocks.getCurrentBlockIndex();
+    const block =
+      hovered ??
+      (index >= 0 ? holder.querySelectorAll<HTMLElement>(".ce-block")[index] : undefined);
+    if (!block) return;
+    const top = block.offsetTop;
+    if (parseInt(toolbar.style.top ?? "", 10) !== top) {
+      toolbar.style.top = `${top}px`;
+    }
+  };
+
+  const schedule = () => {
+    if (!raf) raf = requestAnimationFrame(pin);
+  };
+
+  redactor.addEventListener("mouseover", onOver, { passive: true });
+
+  const observer = new MutationObserver(schedule);
+  observer.observe(toolbar, { attributes: true, attributeFilter: ["class", "style"] });
+
+  schedule();
+
+  return () => {
+    redactor.removeEventListener("mouseover", onOver);
+    observer.disconnect();
+    if (raf) cancelAnimationFrame(raf);
+  };
+}
+
 export default function Editor({
   initialData,
 }: {
@@ -38,6 +94,7 @@ export default function Editor({
 
   useEffect(() => {
     let disposed = false;
+    const toolbarCleanup = { run: () => {} };
 
     async function init() {
       const [
@@ -132,6 +189,21 @@ export default function Editor({
 
       editorRef.current = editor;
 
+      const holderEl = holderRef.current;
+      if (holderEl) {
+        editor.isReady
+          .then(() => {
+            if (disposed || !holderRef.current) return;
+            toolbarCleanup.run = pinToolbarToCurrentBlock(
+              holderRef.current,
+              editor as EditorWithBlocks,
+            );
+          })
+          .catch(() => {
+            /* editor failed to init; nothing to pin */
+          });
+      }
+
       const editors = editor as never as {
         on?: (event: string, callback: () => void) => void;
         off?: (event: string, callback: () => void) => void;
@@ -154,6 +226,7 @@ export default function Editor({
 
     return () => {
       disposed = true;
+      toolbarCleanup.run();
       unregisterEditorSave();
       unregisterEditorChange();
       const instance = editorRef.current as { destroy?: () => void } | null;
