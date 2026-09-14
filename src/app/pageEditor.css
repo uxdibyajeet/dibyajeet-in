@@ -4,10 +4,10 @@
 
 .meta-panel {
   margin-top: 2.5rem;
-  padding: 1.75rem 2rem;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  padding: 1rem 2rem;
+  background: var(--color-neutral-100);
+  border: 1px solid var(--color-neutral-300);
+  border-radius: var(--radius-sm);
 }
 
 .meta-panel__head {
@@ -144,7 +144,7 @@
 
 @media (max-width: 640px) {
   .meta-panel {
-    padding: 1.25rem 1rem;
+    padding: 1rem;
   }
 
   .meta-panel__head {
@@ -161,4 +161,9 @@
     width: 100%;
     text-align: center;
   }
+}
+
+:root[data-theme="dark"] .meta-panel {
+  background: var(--color-neutral-800);
+  border-color: var(--color-neutral-700);
 }

@@ -12,7 +12,7 @@ html {
   --color-white: oklch(100% 0 0);
 
 /* ---- Neutral (cool slate gray tint: hue shifted from warm ~92° to cool ~250°, chroma reduced for a flatter gray) ---- */
-  --color-neutral-50: oklch(98% 0.002 250);
+  --color-neutral-50: oklch(99% 0.002 250);
   --color-neutral-100: oklch(95% 0.0024 250);
   --color-neutral-200: oklch(90% 0.003 250);
   --color-neutral-300: oklch(82% 0.004 250);
@@ -139,7 +139,7 @@ html {
 :root[data-theme="light"] {
   --bg: var(--color-neutral-50);
   --bg-elevated: var(--color-white);
-  --text: var(--color-neutral-900);
+  --text: var(--color-black);
   --text-muted: var(--color-neutral-600);
   --border: var(--color-neutral-200);
   --primary: var(--color-primary-500);
@@ -166,7 +166,7 @@ html {
 :root:not([data-theme]) {
   --bg: var(--color-neutral-50);
   --bg-elevated: var(--color-white);
-  --text: var(--color-neutral-900);
+  --text: var(--color-black);
   --text-muted: var(--color-neutral-600);
   --border: var(--color-neutral-200);
   --primary: var(--color-primary-500);
