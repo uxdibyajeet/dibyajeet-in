@@ -12,6 +12,8 @@
    ========================= */
 
 .case-study-header {
+  --cs-meta-label: #6b7280;
+  --cs-meta-value: #111827;
   padding-top: 3rem;
 }
 
@@ -31,7 +33,9 @@
   gap: 1.25rem 3rem;
   margin-top: 1.5rem;
   margin-bottom: 0;
-  padding-bottom: 2rem;
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
 }
 
@@ -42,21 +46,21 @@
 
 .case-study-meta dt {
   font-family: var(--font-body);
-  font-size: var(--text-caption);
-  font-weight: var(--weight-bold);
+  font-size: var(--text-caption); /* 12px */
+  font-weight: var(--weight-medium);
   letter-spacing: var(--tracking-wide);
   line-height: var(--leading-loose);
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--cs-meta-label);
 }
 
 .case-study-meta dd {
   margin: 0;
   font-family: var(--font-body);
-  font-size: var(--text-base);
-  font-weight: var(--weight-medium);
+  font-size: 0.875rem; /* 14px */
+  font-weight: var(--weight-bold);
   line-height: var(--leading-normal);
-  color: var(--text);
+  color: var(--cs-meta-value);
 }
 
 @media (max-width: 640px) {
@@ -66,6 +70,8 @@
 }
 
 .case-study-content {
+  --cs-heading: #111827;
+  --cs-body: #374151;
   padding: 3rem 0 2rem;
 }
 
@@ -116,19 +122,22 @@
 
 .case-study-content h2 {
   font-family: var(--font-display);
-  font-size: var(--text-headline-2);
-  font-weight: var(--weight-medium);
+  font-size: var(--text-headline-2); /* 30px */
+  font-weight: var(--weight-semibold);
   line-height: var(--leading-snug);
   letter-spacing: var(--tracking-normal);
-  color: var(--text);
+  color: var(--cs-heading);
+  margin-top: 3rem; /* 48px */
+  margin-bottom: 1rem; /* 16px */
 }
 
 .case-study-content h3 {
   font-family: var(--font-display);
-  font-size: 1.375rem;
-  font-weight: var(--weight-medium);
+  font-size: var(--text-headline-3); /* 22px */
+  font-weight: var(--weight-semibold);
   line-height: var(--leading-snug);
-  color: var(--text);
+  color: var(--cs-heading);
+  margin-bottom: 0.5rem; /* 8px */
 }
 
 .case-study-content h4,
@@ -149,7 +158,7 @@
   font-weight: var(--weight-regular);
   line-height: var(--leading-relaxed);
   letter-spacing: var(--tracking-normal);
-  color: var(--text);
+  color: var(--cs-body);
 }
 
 .case-study-content .caption-tool {
@@ -405,4 +414,15 @@
   border: 1px dashed var(--border);
   border-radius: var(--radius-lg);
   color: var(--text-muted);
+}
+
+/* Theme overrides — slate hexes above are for light mode */
+:root[data-theme="dark"] .case-study-header {
+  --cs-meta-label: var(--color-neutral-400);
+  --cs-meta-value: var(--color-neutral-100);
+}
+
+:root[data-theme="dark"] .case-study-content {
+  --cs-heading: var(--color-neutral-100);
+  --cs-body: var(--color-neutral-300);
 }
